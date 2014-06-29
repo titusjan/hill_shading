@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LightSource
 
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 # From:
 # http://matplotlib.org/examples/pylab_examples/shading_example.html?highlight=codex%20shade
 
@@ -31,17 +33,25 @@ def main():
     
     # No hill shading
     axes = axes_list[0]
-    axes.imshow(z, cmap)
+    image = axes.imshow(z, cmap)
     axes.set_title('imshow')
     axes.set_xticks([])
     axes.set_yticks([])
     
+    divider = make_axes_locatable(axes)    
+    colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
+    colorbar = fig.colorbar(image, cax=colorbar_axes, orientation='vertical')
+        
     # Matplotlib default hill shading
     axes = axes_list[1]
-    axes.imshow(rgb)
+    image = axes.imshow(rgb)
     axes.set_title('imshow with shading')
     axes.set_xticks([])
     axes.set_yticks([])    
+    
+    divider = make_axes_locatable(axes)    
+    colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
+    colorbar = fig.colorbar(image, cax=colorbar_axes, orientation='vertical')
     
     fig.show()
 
