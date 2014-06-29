@@ -24,7 +24,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from novitsky import set_shade, hillshade
 
-DEF_AZI = 315.0 # default azimuth angle in degrees
+DEF_AZI = 210.0 # default azimuth angle in degrees
+#DEF_AZI = 315.0 # default azimuth angle in degrees
 DEF_ALT = 45.0  # default elevation angle in degrees
 DEF_SCALE = 10.0
 
@@ -78,6 +79,10 @@ def novitsky_intensity(fig, axes, data, cmap,
     
     intensity = hillshade(data, azdeg=azdeg, altdeg=altdeg, scale = scale)
     image = axes.imshow(intensity, cmap)
+    
+    print "intensity.shape: {}".format(intensity.shape)
+    print "intensity min max: {} ... {}".format(np.min(intensity), np.max(intensity))
+    
 
     axes.set_title('Ran Novitsky intensity')
     axes.set_xticks([])
@@ -97,10 +102,17 @@ def main():
     # shade data, creating an rgb array.
     
     fig, axes_list = plt.subplots(2, 2, figsize=(12, 12))
-    no_shading           (fig, axes_list[0, 0], data, cmap)
-    mpl_hill_shading     (fig, axes_list[0, 1], data, cmap)
-    novitsky_hill_shading(fig, axes_list[1, 0], data, cmap, scale = 10)
-    novitsky_intensity   (fig, axes_list[1, 1], data, plt.cm.gist_gray, scale = 10)
+    
+    if 1:
+        no_shading           (fig, axes_list[0, 0], data, cmap)
+        mpl_hill_shading     (fig, axes_list[0, 1], data, cmap)
+        novitsky_hill_shading(fig, axes_list[1, 0], data, cmap, scale = 0.1)
+        novitsky_intensity   (fig, axes_list[1, 1], data, plt.cm.gist_gray, scale = 0.1)
+    else:
+        novitsky_intensity   (fig, axes_list[0, 0], data, plt.cm.gist_gray, scale = 0.1)
+        novitsky_intensity   (fig, axes_list[0, 1], data, plt.cm.gist_gray, scale = 0.2)
+        novitsky_intensity   (fig, axes_list[1, 0], data, plt.cm.gist_gray, scale = 0.5)
+        novitsky_intensity   (fig, axes_list[1, 1], data, plt.cm.gist_gray, scale = 0.001)
 
     fig.show()
 
