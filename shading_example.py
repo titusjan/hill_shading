@@ -12,6 +12,8 @@ TODO: look at
     or Generic Mapping Tools
     (http://gmt.soest.hawaii.edu/gmt/doc/gmt/html/GMT_Docs/node145.html)
     
+    - Fix azimuth and elevation keywords
+    
 For a list of colormaps:
     http://matplotlib.org/examples/color/colormaps_reference.html
 """
@@ -91,7 +93,7 @@ def intensity(fig, axes, data, cmap,
         intensity = hillshade(data, azdeg=azdeg, altdeg=altdeg, scale = scale)
         axes.set_title('Ran Novitsky intensity')
     else:    
-        intensity = hill_shade_intensity(data, azdeg=azdeg, altdeg=altdeg, scale = scale)
+        intensity = hill_shade_intensity(data, azimuth=azdeg, elevation=altdeg, scale = scale)
         axes.set_title('Pepijn Kenter intensity')
     
     image = axes.imshow(intensity, cmap)
@@ -125,9 +127,12 @@ def main():
     # test data
     x, y = np.mgrid[-5:5:0.05, -5:5:0.05]
     data = np.sqrt(x ** 2 + y ** 2) + np.sin(x ** 2 + y ** 2)
+    
     #cmap = plt.cm.rainbow
     #cmap = plt.cm.cool
-    cmap = plt.cm.jet
+    #cmap = plt.cm.cubehelix # doesn't work yet
+    #cmap = plt.cm.gist_earth
+    cmap = plt.cm.hot
     
     #from objbrowser import browse
     #browse(cmap(0, 1), "cmap")
@@ -140,8 +145,8 @@ def main():
     if 1:
         no_shading            (fig, axes_list[0, 0], data, cmap)
         mpl_hill_shading      (fig, axes_list[0, 1], data, cmap)
-        novitsky_hill_shading (fig, axes_list[1, 0], data, cmap, scale = 10)
-        #novitsky_intensity   (fig, axes_list[1, 1], data, plt.cm.gist_gray, scale = 10)
+        novitsky_hill_shading (fig, axes_list[1, 0], data, cmap, scale = 0.01)
+        #intensity             (fig, axes_list[1, 0], data, plt.cm.gist_gray, scale = 10)
         kenter_hill_shading   (fig, axes_list[1, 1], data, cmap, scale = 10)
     else:
         intensity   (fig, axes_list[0, 0], data, plt.cm.gist_gray, scale = 10)
