@@ -38,7 +38,7 @@ def hill_shade_hsv(data, terrain=None,
                    scale_terrain=0.1, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
                    cmap=DEF_CMAP, norm_fn=None, vmin=None, vmax=None, 
                    terrain_nan_value=0):
-    """ Calculates hillshading
+    """ Calculates hill shading by putting the intensity in the Value layer of the HSV space.
     """
     if terrain is None:
         terrain = data
@@ -66,7 +66,10 @@ def hill_shade_pegtop(data, terrain=None,
                       scale_terrain=0.1, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
                       cmap=DEF_CMAP, norm_fn=None, vmin=None, vmax=None, 
                       terrain_nan_value=0):
-    """ Calculates hillshading
+    """ Calculates hillshading using the pegtop method to blend the intensity with the data
+    
+        Forked from Ran Novitsky's blog
+            http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html
     """
     if terrain is None:
         terrain = data
@@ -94,21 +97,21 @@ def hill_shade_pegtop(data, terrain=None,
     return 2 * d * rgb + (rgb ** 2) * (1 - 2 * d)
 
 
-    
-# Same as novitsky hill shading but where the gradient is
-# multiplied by the scale instead of divided.
 
-# TODO: rename
-def calculate_intensity(terrain, scale_terrain=0.1, 
+def calculate_intensity(terrain, scale_terrain=10, 
                         azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
-    """ convert data to hillshade based on matplotlib.colors.LightSource class.
-      input:
-           terrain - a 2-d array of the terrain
-           scale - scaling value of the terrain. higher number = higher gradient
-           azdeg - where the light comes from: 0 south ; 90 east ; 180 north ;
+    """ Calculates the shade inensity from the terrain gradiant and an artificial light source
+    
+        Forked from Ran Novitsky's blog but with interted scale_terrain meaning
+            http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html
+            
+        input:
+            terrain - a 2-d array of the terrain
+            scale_terrain - scaling value of the terrain. higher number = higher gradient
+            azimuth - where the light comes from: 0 south ; 90 east ; 180 north ;
                         270 west
-           altdeg - where the light comes from: 0 horison ; 90 zenith
-      output: a 2-d array of normalized hilshade
+            elevation - where the light comes from: 0 horison ; 90 zenith
+        output: a 2-d array of normalized hilshade
     """
     # convert alt, az to radians
     az = azimuth * pi / 180.0
@@ -119,7 +122,8 @@ def calculate_intensity(terrain, scale_terrain=0.1,
     aspect = arctan2(dx, dy)
     intensity = sin(alt) * sin(slope) + cos(alt) * \
         cos(slope) * cos(-az - aspect - 0.5 * pi)
-    intensity = (intensity - intensity.min()) / \
-        (intensity.max() - intensity.min())
+    
+    intensity = (intensity - intensity.min()) / (intensity.max() - intensity.min())
+        
     return intensity
 

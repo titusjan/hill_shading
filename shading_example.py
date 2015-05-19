@@ -6,8 +6,6 @@ Matplotlib shading:
 Ran Novitsky
     http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html
 
-For a list of colormaps:
-    http://matplotlib.org/examples/color/colormaps_reference.html
 
 TODO: look at
     (http://reference.wolfram.com/mathematica/ref/ReliefPlot.html)
@@ -15,7 +13,7 @@ TODO: look at
     
     - Clean up calculate_intensity
     - Use inproduct to calculate angle between normal an light source.
-        
+    - Clip intensity instead of normalized it?
     
 """
 from __future__ import print_function
@@ -46,27 +44,45 @@ DEF_SCALE = 10.0
 DEF_INTERP = 'nearest'
 #DEF_INTERP = None
 
-# see http://matplotlib.org/users/colormaps.html for choosing a good color map
+
+# For a list of colormaps see:
+#    http://matplotlib.org/examples/color/colormaps_reference.html
+
+# For choosing a good color map see:
+#    http://matplotlib.org/users/colormaps.html 
+
 #DEF_CMAP = plt.cm.rainbow
-DEF_CMAP = plt.cm.cool
-#DEF_CMAP = plt.cm.cubehelix # doesn't work yet
+#DEF_CMAP = plt.cm.cool
+#DEF_CMAP = plt.cm.cubehelix # doesn't work well
 #DEF_CMAP = plt.cm.hot
 #DEF_CMAP = plt.cm.bwr
-#DEF_CMAP = plt.cm.gist_earth
+DEF_CMAP = plt.cm.gist_earth
     
 
 
+def add_colorbar(fig, axes, cmap, norm=None):
+    """ Aux function that makes a colorbar from the image and adds it to the figure
+    """
+    divider = make_axes_locatable(axes)    
+    colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
+    #colorbar = fig.colorbar(image, cax=colorbar_axes, orientation='vertical')
+    colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, orientation='vertical')
+
+
+def remove_ticks(axes):
+    """ Aux function that removes the ticks from the axes
+    """
+    axes.set_xticks([])
+    axes.set_yticks([])
+    
+    
 def plot_data(fig, axes, data, cmap=DEF_CMAP, interpolation=DEF_INTERP):
     " Shows data without hill shading"
 
     image = axes.imshow(data, cmap, interpolation=interpolation)
     axes.set_title('No shading')
-    axes.set_xticks([])
-    axes.set_yticks([])
-    
-    divider = make_axes_locatable(axes)    
-    colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
-    colorbar = fig.colorbar(image, cax=colorbar_axes, orientation='vertical')
+    add_colorbar(fig, axes, cmap)
+    remove_ticks(axes)
 
 
 def plot_mpl_hs(fig, axes, data, cmap=DEF_CMAP, 
@@ -83,12 +99,8 @@ def plot_mpl_hs(fig, axes, data, cmap=DEF_CMAP,
     # as is demonstrated in novitsky_hill_shading below
     image = axes.imshow(rgb, cmap, norm=norm, interpolation=interpolation)
     axes.set_title('Matplotlib hill shading')
-    axes.set_xticks([])
-    axes.set_yticks([])    
-    
-    divider = make_axes_locatable(axes)    
-    colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
-    colorbar = fig.colorbar(image, cax=colorbar_axes, orientation='vertical')
+    add_colorbar(fig, axes, cmap)
+    remove_ticks(axes)
     
 
 def plot_pegtop_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP, 
@@ -105,13 +117,8 @@ def plot_pegtop_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP,
     image = axes.imshow(rgb, interpolation=interpolation)
 
     axes.set_title('Pegtop hill shading')
-    axes.set_xticks([])
-    axes.set_yticks([])    
-    
-    divider = make_axes_locatable(axes)    
-    colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
-    colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, orientation='vertical')
-
+    add_colorbar(fig, axes, cmap)
+    remove_ticks(axes)
 
 
 def plot_hsv_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP, 
@@ -127,16 +134,11 @@ def plot_hsv_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP,
     image = axes.imshow(rgb, interpolation=interpolation)
 
     axes.set_title('HSV hill shading')
-    axes.set_xticks([])
-    axes.set_yticks([])    
-    
-    divider = make_axes_locatable(axes)    
-    colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
-    colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, orientation='vertical')
+    add_colorbar(fig, axes, cmap, norm=norm)
+    remove_ticks(axes)    
 
 
-
-def plot_intensity(fig, axes, terrain, cmap=DEF_CMAP, 
+def plot_intensity(fig, axes, terrain, cmap=plt.cm.gist_gray, 
                    azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE,
                    interpolation=DEF_INTERP):
     " Shows only the shading component of the shading by Ran Novitsky"
@@ -147,12 +149,9 @@ def plot_intensity(fig, axes, terrain, cmap=DEF_CMAP,
     axes.set_title('Intensity')
     
     image = axes.imshow(intensity, cmap, interpolation=interpolation)
-    axes.set_xticks([])
-    axes.set_yticks([])    
-    
-    divider = make_axes_locatable(axes)    
-    colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
-    colorbar = fig.colorbar(image, cax=colorbar_axes, orientation='vertical')
+    add_colorbar(fig, axes, cmap, norm=norm)
+    remove_ticks(axes)    
+
     
 
 
@@ -187,13 +186,13 @@ def main():
     if 1:
         plot_data     (fig, axes_list[0, 0], data)
         plot_mpl_hs   (fig, axes_list[0, 1], data)
-        plot_pegtop_hs(fig, axes_list[1, 0], data, terrain=terrain, scale_terrain = 0.2)
-        plot_hsv_hs   (fig, axes_list[1, 1], data, terrain=terrain, scale_terrain = 5)
+        plot_pegtop_hs(fig, axes_list[1, 0], data, terrain=terrain, scale_terrain = 10)
+        plot_hsv_hs   (fig, axes_list[1, 1], data, terrain=terrain, scale_terrain = 10)
     else:
-        plot_intensity(fig, axes_list[0, 0], terrain, plt.cm.gist_gray, scale_terrain = 10)
-        plot_intensity(fig, axes_list[0, 1], terrain, plt.cm.gist_gray, scale_terrain = 5)
-        plot_intensity(fig, axes_list[1, 0], terrain, plt.cm.gist_gray, scale_terrain = 2)
-        plot_intensity(fig, axes_list[1, 1], terrain, plt.cm.gist_gray, scale_terrain = 1000)
+        plot_intensity(fig, axes_list[0, 0], terrain, scale_terrain = 0.001)
+        plot_intensity(fig, axes_list[0, 1], terrain, scale_terrain = 1)
+        plot_intensity(fig, axes_list[1, 0], terrain, scale_terrain = 10)
+        plot_intensity(fig, axes_list[1, 1], terrain, scale_terrain = 100)
 
     plt.show()
 
