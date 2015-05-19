@@ -13,10 +13,7 @@ TODO: look at
     (http://reference.wolfram.com/mathematica/ref/ReliefPlot.html)
     or Generic Mapping Tools (http://gmt.soest.hawaii.edu/)
     
-    - Fix azimuth and elevation keywords
-    
     - Clean up hill_shade_intensity
-    - Allow hill_shade to accept separate data for the color
     - Use inproduct to calculate angle between normal an light source.
         
     
@@ -43,10 +40,8 @@ from mpl_toolkits.mplot3d import axes3d
 
 #from novitsky import set_shade, hillshade
 from pepshade import hill_shade_hsv, hill_shade_pegtop, hill_shade_intensity
+from pepshade import DEF_AZIMUTH, DEF_ELEVATION
 
-DEF_AZI = 210.0 # default azimuth angle in degrees
-#DEF_AZI = 315.0 # default azimuth angle in degrees
-DEF_ALT = 45.0  # default elevation angle in degrees
 DEF_SCALE = 10.0
 DEF_INTERP = 'nearest'
 #DEF_INTERP = None
@@ -75,10 +70,10 @@ def no_shading(fig, axes, data, cmap=DEF_CMAP, interpolation=DEF_INTERP):
 
 
 def mpl_hill_shading(fig, axes, data, cmap=DEF_CMAP, 
-                     azdeg=DEF_AZI, altdeg=DEF_ALT, 
+                     azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
                      interpolation=DEF_INTERP):
     " Shows data matplotlibs implementation of hill shading"
-    ls = LightSource(azdeg=azdeg, altdeg=altdeg)
+    ls = LightSource(azdeg=azimuth, altdeg=elevation)
     rgb = ls.shade(data, cmap=cmap)
     
     norm = mpl.colors.Normalize(vmin=np.min(data), vmax=np.max(data))
@@ -97,14 +92,14 @@ def mpl_hill_shading(fig, axes, data, cmap=DEF_CMAP,
     
 
 def novitsky_hill_shading(fig, axes, data, terrain=None, cmap=DEF_CMAP, 
-                          azdeg=DEF_AZI, altdeg=DEF_ALT, scale_terrain = DEF_SCALE,
+                          azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE,
                           interpolation=DEF_INTERP):
     " Shows data with hill shading by Ran Novitsky"
 
     norm = mpl.colors.Normalize(vmin=np.min(data), vmax=np.max(data))
     
     rgb = hill_shade_pegtop(data, terrain=terrain, 
-                            azimuth=azdeg, elevation=altdeg, scale_terrain = scale_terrain, 
+                            azimuth=azimuth, elevation=elevation, scale_terrain = scale_terrain, 
                             cmap=cmap, norm_fn=norm)
     
     image = axes.imshow(rgb, interpolation=interpolation)
@@ -119,13 +114,14 @@ def novitsky_hill_shading(fig, axes, data, terrain=None, cmap=DEF_CMAP,
 
 
 def intensity(fig, axes, terrain, cmap=DEF_CMAP, 
-              azdeg=DEF_AZI, altdeg=DEF_ALT, scale_terrain = DEF_SCALE,
+              azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE,
               interpolation=DEF_INTERP):
     " Shows only the shading component of the shading by Ran Novitsky"
     # Intensity will always be between 0 and 1
     
-    intensity = hill_shade_intensity(terrain, azimuth=azdeg, elevation=altdeg, scale_terrain = scale_terrain)
-    axes.set_title('Pepijn Kenter intensity')
+    intensity = hill_shade_intensity(terrain, azimuth=azimuth, elevation=elevation, 
+                                     scale_terrain = scale_terrain)
+    axes.set_title('Intensity')
     
     image = axes.imshow(intensity, cmap, interpolation=interpolation)
     axes.set_xticks([])
@@ -137,14 +133,14 @@ def intensity(fig, axes, terrain, cmap=DEF_CMAP,
 
 
 def kenter_hill_shading(fig, axes, data, terrain=None, cmap=DEF_CMAP, 
-                        azdeg=DEF_AZI, altdeg=DEF_ALT, scale_terrain = DEF_SCALE, 
+                        azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE, 
                         interpolation=DEF_INTERP):
     " Shows data with hill shading by Ran Novitsky"
 
     norm = mpl.colors.Normalize(vmin=np.min(data), vmax=np.max(data))
     
     rgb = hill_shade_hsv(data, terrain=terrain, 
-                         azimuth=azdeg, elevation=altdeg, scale_terrain = scale_terrain, 
+                         azimuth=azimuth, elevation=elevation, scale_terrain = scale_terrain, 
                          cmap=cmap, norm_fn=norm)
     image = axes.imshow(rgb, interpolation=interpolation)
 
