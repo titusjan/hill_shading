@@ -1,6 +1,9 @@
 #!/bin/env python
 
+# THIS MODULE IS NOW OBSOLETE AND WILL BE REMOVED IN THE FUTURE #
 # From: http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html
+
+
 from __future__ import print_function
 from __future__ import division
 

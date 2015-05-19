@@ -39,8 +39,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 
 #from novitsky import set_shade, hillshade
-from pepshade import hill_shade_hsv, hill_shade_pegtop, hill_shade_intensity
-from pepshade import DEF_AZIMUTH, DEF_ELEVATION
+from hillshade import hill_shade_hsv, hill_shade_pegtop, hill_shade_intensity
+from hillshade import DEF_AZIMUTH, DEF_ELEVATION
 
 DEF_SCALE = 10.0
 DEF_INTERP = 'nearest'
