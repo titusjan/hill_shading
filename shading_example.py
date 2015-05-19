@@ -17,10 +17,21 @@ TODO: look at
 For a list of colormaps:
     http://matplotlib.org/examples/color/colormaps_reference.html
 """
+from __future__ import print_function
+from __future__ import division
+
+import sys
+import matplotlib as mpl
+
+mpl.interactive(False) 
+if len(sys.argv) > 1 and sys.argv[1]=='--qt':
+    print("Force 'Qt4Agg' backend")
+    mpl.use('Qt4Agg')  
+    mpl.rcParams['backend.qt4'] = 'PySide'
+    
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 from matplotlib import cm
 from matplotlib.colors import LightSource
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -32,11 +43,13 @@ DEF_AZI = 210.0 # default azimuth angle in degrees
 #DEF_AZI = 315.0 # default azimuth angle in degrees
 DEF_ALT = 45.0  # default elevation angle in degrees
 DEF_SCALE = 10.0
+#DEF_INTERP = 'nearest'
+DEF_INTERP = None
 
-def no_shading(fig, axes, data, cmap):
+def no_shading(fig, axes, data, cmap, interpolation=DEF_INTERP):
     " Shows data without hill shading"
 
-    image = axes.imshow(data, cmap)
+    image = axes.imshow(data, cmap, interpolation=interpolation)
     axes.set_title('No shading')
     axes.set_xticks([])
     axes.set_yticks([])
@@ -46,7 +59,9 @@ def no_shading(fig, axes, data, cmap):
     colorbar = fig.colorbar(image, cax=colorbar_axes, orientation='vertical')
 
 
-def mpl_hill_shading(fig, axes, data, cmap, azdeg=DEF_AZI, altdeg=DEF_ALT):
+def mpl_hill_shading(fig, axes, data, cmap, 
+                     azdeg=DEF_AZI, altdeg=DEF_ALT, 
+                     interpolation=DEF_INTERP):
     " Shows data matplotlibs implementation of hill shading"
     ls = LightSource(azdeg=azdeg, altdeg=altdeg)
     rgb = ls.shade(data, cmap=cmap)
@@ -56,7 +71,7 @@ def mpl_hill_shading(fig, axes, data, cmap, azdeg=DEF_AZI, altdeg=DEF_ALT):
     # Norm will not be used to normalize rgb in in the imshow() call but 
     # is used to normalize the color bar. An alternative is to use ColorbarBase
     # as is demonstrated in novitsky_hill_shading below
-    image = axes.imshow(rgb, cmap, norm=norm)
+    image = axes.imshow(rgb, cmap, norm=norm, interpolation=interpolation)
     axes.set_title('Matplotlib hill shading')
     axes.set_xticks([])
     axes.set_yticks([])    
@@ -67,13 +82,14 @@ def mpl_hill_shading(fig, axes, data, cmap, azdeg=DEF_AZI, altdeg=DEF_ALT):
     
 
 def novitsky_hill_shading(fig, axes, data, cmap, 
-                          azdeg=DEF_AZI, altdeg=DEF_ALT, scale = DEF_SCALE):
+                          azdeg=DEF_AZI, altdeg=DEF_ALT, scale = DEF_SCALE,
+                          interpolation=DEF_INTERP):
     " Shows data with hill shading by Ran Novitsky"
 
     norm = mpl.colors.Normalize(vmin=np.min(data), vmax=np.max(data))
     
     rgb = set_shade(data, cmap=cmap, azdeg=azdeg, altdeg=altdeg, scale = scale)
-    image = axes.imshow(rgb)
+    image = axes.imshow(rgb, interpolation=interpolation)
 
     axes.set_title('Ran Novitsky hill shading')
     axes.set_xticks([])
@@ -85,7 +101,8 @@ def novitsky_hill_shading(fig, axes, data, cmap,
 
 
 def intensity(fig, axes, data, cmap, 
-                          azdeg=DEF_AZI, altdeg=DEF_ALT, scale = DEF_SCALE):
+              azdeg=DEF_AZI, altdeg=DEF_ALT, scale = DEF_SCALE,
+              interpolation=DEF_INTERP):
     " Shows only the shading component of the shading by Ran Novitsky"
     # Intensity will always be between 0 and 1
     
@@ -96,7 +113,7 @@ def intensity(fig, axes, data, cmap,
         intensity = hill_shade_intensity(data, azimuth=azdeg, elevation=altdeg, scale = scale)
         axes.set_title('Pepijn Kenter intensity')
     
-    image = axes.imshow(intensity, cmap)
+    image = axes.imshow(intensity, cmap, interpolation=interpolation)
     axes.set_xticks([])
     axes.set_yticks([])    
     
@@ -106,13 +123,14 @@ def intensity(fig, axes, data, cmap,
 
 
 def kenter_hill_shading(fig, axes, data, cmap, 
-                        azdeg=DEF_AZI, altdeg=DEF_ALT, scale = DEF_SCALE):
+                        azdeg=DEF_AZI, altdeg=DEF_ALT, scale = DEF_SCALE, 
+                        interpolation=DEF_INTERP):
     " Shows data with hill shading by Ran Novitsky"
 
     norm = mpl.colors.Normalize(vmin=np.min(data), vmax=np.max(data))
     
     rgb = hill_shade(data, cmap=cmap, azimuth=azdeg, elevation=altdeg, scale = scale)
-    image = axes.imshow(rgb)
+    image = axes.imshow(rgb, interpolation=interpolation)
 
     axes.set_title('Pepijn Kenter hill shading')
     axes.set_xticks([])
@@ -128,11 +146,13 @@ def main():
     x, y = np.mgrid[-5:5:0.05, -5:5:0.05]
     data = np.sqrt(x ** 2 + y ** 2) + np.sin(x ** 2 + y ** 2)
     
+    #data[20:40, 30:50] = np.nan
+    
     #cmap = plt.cm.rainbow
     #cmap = plt.cm.cool
     #cmap = plt.cm.cubehelix # doesn't work yet
-    #cmap = plt.cm.gist_earth
-    cmap = plt.cm.hot
+    cmap = plt.cm.gist_earth
+    #cmap = plt.cm.hot
     
     #from objbrowser import browse
     #browse(cmap(0, 1), "cmap")
@@ -154,9 +174,10 @@ def main():
         intensity   (fig, axes_list[1, 0], data, plt.cm.gist_gray, scale = 2)
         intensity   (fig, axes_list[1, 1], data, plt.cm.gist_gray, scale = 1000)
 
-    fig.show()
+    plt.show()
 
 if __name__ == "__main__":
     main()
-    raw_input('please press enter\n')
+    if mpl.is_interactive() and  mpl.get_backend() == 'MacOSX':
+        raw_input('please press enter\n')
     
