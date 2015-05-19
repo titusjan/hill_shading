@@ -5,6 +5,7 @@ from __future__ import print_function
 from __future__ import division
 
 import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
 from numpy import pi, cos, sin, gradient, arctan, hypot, arctan2
 from matplotlib import cm
@@ -12,12 +13,19 @@ from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
 
 DEF_AZIMUTH = 165   # degrees
 DEF_ELEVATION = 45  # degrees
+DEF_CMAP = plt.cm.gist_earth
     
 def hill_shade(data, terrain=None, 
                scale_terrain=0.1, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
-               cmap=cm.jet, terrain_nan_value=0):
+               cmap=DEF_CMAP, cnorm_fn=None, vmin=None, vmax=None, 
+               terrain_nan_value=0):
     """ Calculates hillshading
     """
+    vmin = np.nanmin(data) if vmin is None else vmin
+    vmax = np.nanmax(data) if vmax is None else vmax
+    if cnorm_fn is None:
+        cnorm_fn = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+    
     if terrain is None:
         terrain = data
     
@@ -32,8 +40,7 @@ def hill_shade(data, terrain=None,
     else:
         finite_terrain = terrain
     
-    normalize_fn = mpl.colors.Normalize()
-    norm_data = normalize_fn(data)
+    norm_data = cnorm_fn(data)
     rgba = cmap(norm_data)
     hsv = rgb_to_hsv(rgba[:, :, :3])
 

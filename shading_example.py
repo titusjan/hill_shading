@@ -51,11 +51,13 @@ DEF_SCALE = 10.0
 DEF_INTERP = 'nearest'
 #DEF_INTERP = None
 
+# see http://matplotlib.org/users/colormaps.html for choosing a good color map
 #DEF_CMAP = plt.cm.rainbow
 #DEF_CMAP = plt.cm.cool
 #DEF_CMAP = plt.cm.cubehelix # doesn't work yet
 #DEF_CMAP = plt.cm.hot
-DEF_CMAP = plt.cm.gist_earth
+DEF_CMAP = plt.cm.bwr
+#DEF_CMAP = plt.cm.gist_earth
     
 
 
@@ -142,8 +144,9 @@ def kenter_hill_shading(fig, axes, data, terrain=None, cmap=DEF_CMAP,
 
     norm = mpl.colors.Normalize(vmin=np.min(data), vmax=np.max(data))
     
-    rgb = hill_shade(data, cmap=cmap, terrain=terrain, 
-                     azimuth=azdeg, elevation=altdeg, scale_terrain = scale_terrain)
+    rgb = hill_shade(data, terrain=terrain, 
+                     azimuth=azdeg, elevation=altdeg, scale_terrain = scale_terrain, 
+                     cmap=cmap, cnorm_fn=norm)
     image = axes.imshow(rgb, interpolation=interpolation)
 
     axes.set_title('Pepijn Kenter hill shading')
@@ -154,24 +157,31 @@ def kenter_hill_shading(fig, axes, data, terrain=None, cmap=DEF_CMAP,
     colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
     colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, orientation='vertical')
 
+def generate_concentric_circles():
+    x, y = np.mgrid[-5:5:0.05, -5:5:0.05] # 200 by 200
+    data = np.sqrt(x ** 2 + y ** 2) + np.sin(x ** 2 + y ** 2)
+    return data
 
-def get_noisy_test_data():
+def generate_hills_with_noise():
     _, _, data = axes3d.get_test_data(0.03)  # 200 by 200
     noise = 5 * np.random.randn(*data.shape) # unpack shape
     return -data + noise  
 
 
 def main():
-    # test data
-    x, y = np.mgrid[-5:5:0.05, -5:5:0.05] # 200 by 200
-    terrain = np.sqrt(x ** 2 + y ** 2) + np.sin(x ** 2 + y ** 2)
-    data = get_noisy_test_data()
-    #terrain = data
-    assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
-    
-    #data[20:40, 30:50] = np.nan
 
-    
+    if 0:
+        data = generate_concentric_circles()
+        terrain = generate_concentric_circles()
+    else:
+        data    = generate_hills_with_noise()
+        terrain = generate_concentric_circles()
+        
+    assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
+
+    # Uncomment the line below to see Nans in the terrain
+    #terrain[20:40, 30:50] = np.nan
+
     fig, axes_list = plt.subplots(2, 2, figsize=(10, 10))
     
     if 1:
