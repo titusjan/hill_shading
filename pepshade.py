@@ -6,7 +6,7 @@
     
 """
 import matplotlib as mpl
-
+import numpy as np
 from numpy import pi, cos, sin, gradient, arctan, hypot, arctan2
 from matplotlib import cm
 from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
@@ -16,17 +16,28 @@ DEF_ELEVATION = 45  # degrees
     
 def hill_shade(data, scale=0.1, 
                azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
-               cmap=cm.jet):
+               cmap=cm.jet, nan_replacement=0):
     """ Calculates hillshading
     """
     assert data.ndim == 2, "data must be 2 dimensional"
-    intensity = hill_shade_intensity(data, scale=scale, 
+    
+    # replace non finite values with zero for calcualting the intensity
+
+    is_non_finite = np.logical_not(np.isfinite(data)) # use mask?
+    if np.any(is_non_finite):
+        finite_data = np.copy(data)
+        finite_data[is_non_finite] = nan_replacement
+    else:
+        finite_data = data
+    
+    intensity = hill_shade_intensity(finite_data, scale=scale, 
                                      azimuth=azimuth, elevation=elevation)
     normalize_fn = mpl.colors.Normalize()
-    norm_data = normalize_fn(data)
+    norm_data = normalize_fn(finite_data)
     rgba = cmap(norm_data)
     hsv = rgb_to_hsv(rgba[:, :, :3])
     hsv[:, :, 2] = intensity
+    
     return hsv_to_rgb(hsv)
     
 
