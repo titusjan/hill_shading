@@ -15,32 +15,43 @@ DEF_AZIMUTH = 165   # degrees
 DEF_ELEVATION = 45  # degrees
 DEF_CMAP = plt.cm.gist_earth
     
-def hill_shade(data, terrain=None, 
-               scale_terrain=0.1, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
-               cmap=DEF_CMAP, cnorm_fn=None, vmin=None, vmax=None, 
-               terrain_nan_value=0):
-    """ Calculates hillshading
+    
+def _replace_nans(array, array_nan_value):
+    """ Returns a copy of the array with the nans replaced by nan_value
+    """
+    finite_array = np.copy(array)
+    is_non_finite = np.logical_not(np.isfinite(array)) # TODO: use mask?
+    if np.any(is_non_finite):
+        finite_array[is_non_finite] = array_nan_value
+    return finite_array
+    
+    
+def _create_norm_function(data, vmin, vmax):
+    """ Aux function to create a normalization function
     """
     vmin = np.nanmin(data) if vmin is None else vmin
     vmax = np.nanmax(data) if vmax is None else vmax
-    if cnorm_fn is None:
-        cnorm_fn = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+    return mpl.colors.Normalize(vmin=vmin, vmax=vmax)    
     
+    
+def hill_shade_hsv(data, terrain=None, 
+                   scale_terrain=0.1, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
+                   cmap=DEF_CMAP, norm_fn=None, vmin=None, vmax=None, 
+                   terrain_nan_value=0):
+    """ Calculates hillshading
+    """
     if terrain is None:
         terrain = data
     
     assert data.ndim == 2, "data must be 2 dimensional"
     assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
     
-    # replace non finite values with zero for calcualting the intensity
-    is_non_finite = np.logical_not(np.isfinite(terrain)) # TODO: use mask?
-    if np.any(is_non_finite):
-        finite_terrain = np.copy(terrain)
-        finite_terrain[is_non_finite] = terrain_nan_value
-    else:
-        finite_terrain = terrain
+    finite_terrain = _replace_nans(terrain, terrain_nan_value)
     
-    norm_data = cnorm_fn(data)
+    if norm_fn is None:
+        norm_fn = _create_norm_function(data, vmin, vmax)
+
+    norm_data = norm_fn(data)
     rgba = cmap(norm_data)
     hsv = rgb_to_hsv(rgba[:, :, :3])
 
@@ -50,10 +61,44 @@ def hill_shade(data, terrain=None,
     
     return hsv_to_rgb(hsv)
     
+    
+def hill_shade_pegtop(data, terrain=None, 
+                      scale_terrain=0.1, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
+                      cmap=DEF_CMAP, norm_fn=None, vmin=None, vmax=None, 
+                      terrain_nan_value=0):
+    """ Calculates hillshading
+    """
+    if terrain is None:
+        terrain = data
+    
+    assert data.ndim == 2, "data must be 2 dimensional"
+    assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
+    
+    finite_terrain = _replace_nans(terrain, terrain_nan_value)
+    
+    if norm_fn is None:
+        norm_fn = _create_norm_function(data, vmin, vmax)
+    
+    intensity = hill_shade_intensity(finite_terrain, scale_terrain=scale_terrain, 
+                                     azimuth=azimuth, elevation=elevation)
+    norm_data = norm_fn(data)
+    rgba = cmap(norm_data)    
+    
+    # get rgb of normalized data based on cmap
+    rgb = rgba[:, :, :3]
+    
+    # form an rgb eqvivalent of intensity
+    d = intensity.repeat(3).reshape(rgb.shape)
+    
+    # simulate illumination based on pegtop algorithm.
+    return 2 * d * rgb + (rgb ** 2) * (1 - 2 * d)
+
 
     
 # Same as novitsky hill shading but where the gradient is
 # multiplied by the scale instead of divided.
+
+# TODO: rename
 def hill_shade_intensity(terrain, scale_terrain=0.1, 
                          azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
     """ convert data to hillshade based on matplotlib.colors.LightSource class.

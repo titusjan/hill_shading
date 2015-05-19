@@ -41,8 +41,8 @@ from matplotlib.colors import LightSource
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 
-from novitsky import set_shade, hillshade
-from pepshade import hill_shade, hill_shade_intensity
+#from novitsky import set_shade, hillshade
+from pepshade import hill_shade_hsv, hill_shade_pegtop, hill_shade_intensity
 
 DEF_AZI = 210.0 # default azimuth angle in degrees
 #DEF_AZI = 315.0 # default azimuth angle in degrees
@@ -103,13 +103,13 @@ def novitsky_hill_shading(fig, axes, data, terrain=None, cmap=DEF_CMAP,
 
     norm = mpl.colors.Normalize(vmin=np.min(data), vmax=np.max(data))
     
-    intensity = hillshade(terrain, scale_terrain=scale_terrain, azdeg=azdeg, altdeg=altdeg)
+    rgb = hill_shade_pegtop(data, terrain=terrain, 
+                            azimuth=azdeg, elevation=altdeg, scale_terrain = scale_terrain, 
+                            cmap=cmap, norm_fn=norm)
     
-    rgb = set_shade(data, intensity=intensity, cmap=cmap, 
-                    azdeg=azdeg, altdeg=altdeg, scale_terrain = scale_terrain)
     image = axes.imshow(rgb, interpolation=interpolation)
 
-    axes.set_title('Ran Novitsky hill shading')
+    axes.set_title('Pegtop hill shading')
     axes.set_xticks([])
     axes.set_yticks([])    
     
@@ -124,12 +124,8 @@ def intensity(fig, axes, terrain, cmap=DEF_CMAP,
     " Shows only the shading component of the shading by Ran Novitsky"
     # Intensity will always be between 0 and 1
     
-    if 0:
-        intensity = hillshade(terrain, azdeg=azdeg, altdeg=altdeg, scale_terrain = scale_terrain)
-        axes.set_title('Ran Novitsky intensity')
-    else:    
-        intensity = hill_shade_intensity(terrain, azimuth=azdeg, elevation=altdeg, scale_terrain = scale_terrain)
-        axes.set_title('Pepijn Kenter intensity')
+    intensity = hill_shade_intensity(terrain, azimuth=azdeg, elevation=altdeg, scale_terrain = scale_terrain)
+    axes.set_title('Pepijn Kenter intensity')
     
     image = axes.imshow(intensity, cmap, interpolation=interpolation)
     axes.set_xticks([])
@@ -147,12 +143,12 @@ def kenter_hill_shading(fig, axes, data, terrain=None, cmap=DEF_CMAP,
 
     norm = mpl.colors.Normalize(vmin=np.min(data), vmax=np.max(data))
     
-    rgb = hill_shade(data, terrain=terrain, 
-                     azimuth=azdeg, elevation=altdeg, scale_terrain = scale_terrain, 
-                     cmap=cmap, cnorm_fn=norm)
+    rgb = hill_shade_hsv(data, terrain=terrain, 
+                         azimuth=azdeg, elevation=altdeg, scale_terrain = scale_terrain, 
+                         cmap=cmap, norm_fn=norm)
     image = axes.imshow(rgb, interpolation=interpolation)
 
-    axes.set_title('Pepijn Kenter hill shading')
+    axes.set_title('HSV hill shading')
     axes.set_xticks([])
     axes.set_yticks([])    
     
@@ -160,10 +156,12 @@ def kenter_hill_shading(fig, axes, data, terrain=None, cmap=DEF_CMAP,
     colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
     colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, orientation='vertical')
 
+
 def generate_concentric_circles():
     x, y = np.mgrid[-5:5:0.05, -5:5:0.05] # 200 by 200
     data = np.sqrt(x ** 2 + y ** 2) + np.sin(x ** 2 + y ** 2)
     return data
+
 
 def generate_hills_with_noise():
     _, _, data = axes3d.get_test_data(0.03)  # 200 by 200
