@@ -55,8 +55,8 @@ def hill_shade_hsv(data, terrain=None,
     rgba = cmap(norm_data)
     hsv = rgb_to_hsv(rgba[:, :, :3])
 
-    intensity = hill_shade_intensity(finite_terrain, scale_terrain=scale_terrain, 
-                                     azimuth=azimuth, elevation=elevation)
+    intensity = calculate_intensity(finite_terrain, scale_terrain=scale_terrain, 
+                                    azimuth=azimuth, elevation=elevation)
     hsv[:, :, 2] = intensity
     
     return hsv_to_rgb(hsv)
@@ -79,8 +79,8 @@ def hill_shade_pegtop(data, terrain=None,
     if norm_fn is None:
         norm_fn = _create_norm_function(data, vmin, vmax)
     
-    intensity = hill_shade_intensity(finite_terrain, scale_terrain=scale_terrain, 
-                                     azimuth=azimuth, elevation=elevation)
+    intensity = calculate_intensity(finite_terrain, scale_terrain=scale_terrain, 
+                                    azimuth=azimuth, elevation=elevation)
     norm_data = norm_fn(data)
     rgba = cmap(norm_data)    
     
@@ -99,8 +99,8 @@ def hill_shade_pegtop(data, terrain=None,
 # multiplied by the scale instead of divided.
 
 # TODO: rename
-def hill_shade_intensity(terrain, scale_terrain=0.1, 
-                         azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
+def calculate_intensity(terrain, scale_terrain=0.1, 
+                        azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
     """ convert data to hillshade based on matplotlib.colors.LightSource class.
       input:
            terrain - a 2-d array of the terrain

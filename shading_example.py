@@ -13,7 +13,7 @@ TODO: look at
     (http://reference.wolfram.com/mathematica/ref/ReliefPlot.html)
     or Generic Mapping Tools (http://gmt.soest.hawaii.edu/)
     
-    - Clean up hill_shade_intensity
+    - Clean up calculate_intensity
     - Use inproduct to calculate angle between normal an light source.
         
     
@@ -39,7 +39,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 
 #from novitsky import set_shade, hillshade
-from hillshade import hill_shade_hsv, hill_shade_pegtop, hill_shade_intensity
+from hillshade import hill_shade_hsv, hill_shade_pegtop, calculate_intensity
 from hillshade import DEF_AZIMUTH, DEF_ELEVATION
 
 DEF_SCALE = 10.0
@@ -56,7 +56,7 @@ DEF_CMAP = plt.cm.cool
     
 
 
-def no_shading(fig, axes, data, cmap=DEF_CMAP, interpolation=DEF_INTERP):
+def plot_data(fig, axes, data, cmap=DEF_CMAP, interpolation=DEF_INTERP):
     " Shows data without hill shading"
 
     image = axes.imshow(data, cmap, interpolation=interpolation)
@@ -69,9 +69,9 @@ def no_shading(fig, axes, data, cmap=DEF_CMAP, interpolation=DEF_INTERP):
     colorbar = fig.colorbar(image, cax=colorbar_axes, orientation='vertical')
 
 
-def mpl_hill_shading(fig, axes, data, cmap=DEF_CMAP, 
-                     azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
-                     interpolation=DEF_INTERP):
+def plot_mpl_hs(fig, axes, data, cmap=DEF_CMAP, 
+                azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
+                interpolation=DEF_INTERP):
     " Shows data matplotlibs implementation of hill shading"
     ls = LightSource(azdeg=azimuth, altdeg=elevation)
     rgb = ls.shade(data, cmap=cmap)
@@ -91,10 +91,10 @@ def mpl_hill_shading(fig, axes, data, cmap=DEF_CMAP,
     colorbar = fig.colorbar(image, cax=colorbar_axes, orientation='vertical')
     
 
-def novitsky_hill_shading(fig, axes, data, terrain=None, cmap=DEF_CMAP, 
-                          azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE,
-                          interpolation=DEF_INTERP):
-    " Shows data with hill shading by Ran Novitsky"
+def plot_pegtop_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP, 
+                   azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE,
+                   interpolation=DEF_INTERP):
+    " Shows data with pegtop hill shading by Ran Novitsky"
 
     norm = mpl.colors.Normalize(vmin=np.min(data), vmax=np.max(data))
     
@@ -113,29 +113,11 @@ def novitsky_hill_shading(fig, axes, data, terrain=None, cmap=DEF_CMAP,
     colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, orientation='vertical')
 
 
-def intensity(fig, axes, terrain, cmap=DEF_CMAP, 
-              azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE,
-              interpolation=DEF_INTERP):
-    " Shows only the shading component of the shading by Ran Novitsky"
-    # Intensity will always be between 0 and 1
-    
-    intensity = hill_shade_intensity(terrain, azimuth=azimuth, elevation=elevation, 
-                                     scale_terrain = scale_terrain)
-    axes.set_title('Intensity')
-    
-    image = axes.imshow(intensity, cmap, interpolation=interpolation)
-    axes.set_xticks([])
-    axes.set_yticks([])    
-    
-    divider = make_axes_locatable(axes)    
-    colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
-    colorbar = fig.colorbar(image, cax=colorbar_axes, orientation='vertical')
 
-
-def kenter_hill_shading(fig, axes, data, terrain=None, cmap=DEF_CMAP, 
-                        azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE, 
-                        interpolation=DEF_INTERP):
-    " Shows data with hill shading by Ran Novitsky"
+def plot_hsv_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP, 
+                azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE, 
+                interpolation=DEF_INTERP):
+    " Shows data with HSV hill shading"
 
     norm = mpl.colors.Normalize(vmin=np.min(data), vmax=np.max(data))
     
@@ -151,6 +133,27 @@ def kenter_hill_shading(fig, axes, data, terrain=None, cmap=DEF_CMAP,
     divider = make_axes_locatable(axes)    
     colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
     colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, orientation='vertical')
+
+
+
+def plot_intensity(fig, axes, terrain, cmap=DEF_CMAP, 
+                   azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE,
+                   interpolation=DEF_INTERP):
+    " Shows only the shading component of the shading by Ran Novitsky"
+    # Intensity will always be between 0 and 1
+    
+    intensity = calculate_intensity(terrain, azimuth=azimuth, elevation=elevation, 
+                                     scale_terrain = scale_terrain)
+    axes.set_title('Intensity')
+    
+    image = axes.imshow(intensity, cmap, interpolation=interpolation)
+    axes.set_xticks([])
+    axes.set_yticks([])    
+    
+    divider = make_axes_locatable(axes)    
+    colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
+    colorbar = fig.colorbar(image, cax=colorbar_axes, orientation='vertical')
+    
 
 
 def generate_concentric_circles():
@@ -182,16 +185,15 @@ def main():
     fig, axes_list = plt.subplots(2, 2, figsize=(10, 10))
     
     if 1:
-        no_shading            (fig, axes_list[0, 0], data)
-        mpl_hill_shading      (fig, axes_list[0, 1], data)
-        novitsky_hill_shading (fig, axes_list[1, 0], data, terrain=terrain, scale_terrain = 0.2)
-        kenter_hill_shading   (fig, axes_list[1, 1], data, terrain=terrain, scale_terrain = 5)
-        #intensity             (fig, axes_list[1, 0], terrain, plt.cm.gist_gray, scale_terrain = 10)
+        plot_data     (fig, axes_list[0, 0], data)
+        plot_mpl_hs   (fig, axes_list[0, 1], data)
+        plot_pegtop_hs(fig, axes_list[1, 0], data, terrain=terrain, scale_terrain = 0.2)
+        plot_hsv_hs   (fig, axes_list[1, 1], data, terrain=terrain, scale_terrain = 5)
     else:
-        intensity   (fig, axes_list[0, 0], terrain, plt.cm.gist_gray, scale_terrain = 10)
-        intensity   (fig, axes_list[0, 1], terrain, plt.cm.gist_gray, scale_terrain = 5)
-        intensity   (fig, axes_list[1, 0], terrain, plt.cm.gist_gray, scale_terrain = 2)
-        intensity   (fig, axes_list[1, 1], terrain, plt.cm.gist_gray, scale_terrain = 1000)
+        plot_intensity(fig, axes_list[0, 0], terrain, plt.cm.gist_gray, scale_terrain = 10)
+        plot_intensity(fig, axes_list[0, 1], terrain, plt.cm.gist_gray, scale_terrain = 5)
+        plot_intensity(fig, axes_list[1, 0], terrain, plt.cm.gist_gray, scale_terrain = 2)
+        plot_intensity(fig, axes_list[1, 1], terrain, plt.cm.gist_gray, scale_terrain = 1000)
 
     plt.show()
 
