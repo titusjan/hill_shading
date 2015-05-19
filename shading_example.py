@@ -53,10 +53,10 @@ DEF_INTERP = 'nearest'
 
 # see http://matplotlib.org/users/colormaps.html for choosing a good color map
 #DEF_CMAP = plt.cm.rainbow
-#DEF_CMAP = plt.cm.cool
+DEF_CMAP = plt.cm.cool
 #DEF_CMAP = plt.cm.cubehelix # doesn't work yet
 #DEF_CMAP = plt.cm.hot
-DEF_CMAP = plt.cm.bwr
+#DEF_CMAP = plt.cm.bwr
 #DEF_CMAP = plt.cm.gist_earth
     
 
@@ -103,7 +103,10 @@ def novitsky_hill_shading(fig, axes, data, terrain=None, cmap=DEF_CMAP,
 
     norm = mpl.colors.Normalize(vmin=np.min(data), vmax=np.max(data))
     
-    rgb = set_shade(data, cmap=cmap, azdeg=azdeg, altdeg=altdeg, scale_terrain = scale_terrain)
+    intensity = hillshade(terrain, scale_terrain=scale_terrain, azdeg=azdeg, altdeg=altdeg)
+    
+    rgb = set_shade(data, intensity=intensity, cmap=cmap, 
+                    azdeg=azdeg, altdeg=altdeg, scale_terrain = scale_terrain)
     image = axes.imshow(rgb, interpolation=interpolation)
 
     axes.set_title('Ran Novitsky hill shading')
@@ -170,7 +173,7 @@ def generate_hills_with_noise():
 
 def main():
 
-    if 0:
+    if 1:
         data = generate_concentric_circles()
         terrain = generate_concentric_circles()
     else:
@@ -185,9 +188,9 @@ def main():
     fig, axes_list = plt.subplots(2, 2, figsize=(10, 10))
     
     if 1:
-        no_shading            (fig, axes_list[0, 0], terrain)
-        mpl_hill_shading      (fig, axes_list[0, 1], terrain)
-        novitsky_hill_shading (fig, axes_list[1, 0], data, terrain=terrain, scale_terrain = 0.01)
+        no_shading            (fig, axes_list[0, 0], data)
+        mpl_hill_shading      (fig, axes_list[0, 1], data)
+        novitsky_hill_shading (fig, axes_list[1, 0], data, terrain=terrain, scale_terrain = 0.2)
         kenter_hill_shading   (fig, axes_list[1, 1], data, terrain=terrain, scale_terrain = 5)
         #intensity             (fig, axes_list[1, 0], terrain, plt.cm.gist_gray, scale_terrain = 10)
     else:
