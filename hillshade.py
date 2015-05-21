@@ -16,8 +16,8 @@ DEF_ELEVATION = 45  # degrees
 DEF_CMAP = plt.cm.gist_earth
     
     
-def _replace_nans(array, array_nan_value):
-    """ Returns a copy of the array with the nans replaced by nan_value
+def replace_nans(array, array_nan_value):
+    """ Returns a copy of the array with the NaNs replaced by nan_value
     """
     finite_array = np.copy(array)
     is_non_finite = np.logical_not(np.isfinite(array)) # TODO: use mask?
@@ -26,37 +26,14 @@ def _replace_nans(array, array_nan_value):
     return finite_array
     
     
-def _create_norm_function(data, vmin, vmax):
-    """ Aux function to create a normalization function that clips at vmin and vmax
+def normalize(values, vmin=None, vmax=None):
+    """ Normalize values between 0 and 1.
+        values below vmin will be set to 0, values above vmax to 1.
+        If vmin and vmax are None, they are determined from the data (i.e. auto-scaling)
     """
-    vmin = np.nanmin(data) if vmin is None else vmin
-    vmax = np.nanmax(data) if vmax is None else vmax
-    return mpl.colors.Normalize(vmin=vmin, vmax=vmax)    
+    norm_fn = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+    return norm_fn(values) 
     
-    
-def hill_shade_hsv(data, terrain=None, 
-                   scale_terrain=0.1, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
-                   cmap=DEF_CMAP, norm_fn=None, vmin=None, vmax=None, 
-                   terrain_nan_value=0):
-    """ Calculates hill shading by putting the intensity in the Value layer of the HSV space.
-    """
-    if terrain is None:
-        terrain = data
-    
-    assert data.ndim == 2, "data must be 2 dimensional"
-    assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
-    
-    finite_terrain = _replace_nans(terrain, terrain_nan_value)
-    
-    if norm_fn is None:
-        norm_fn = _create_norm_function(data, vmin, vmax)
-
-    norm_data = norm_fn(data)
-    rgba = cmap(norm_data)
-    norm_intensities = normalized_intensity(finite_terrain, scale_terrain=scale_terrain, 
-                                            azimuth=azimuth, elevation=elevation)
-    return hsv_blending(rgba, norm_intensities)
-
 
 def hsv_blending(rgba, norm_intensities):
     """ Calculates image colors by placing the normalized intensities in the Value layer of the
@@ -72,32 +49,6 @@ def hsv_blending(rgba, norm_intensities):
     return hsv_to_rgb(hsv)
     
     
-def hill_shade_pegtop(data, terrain=None, 
-                      scale_terrain=0.1, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
-                      cmap=DEF_CMAP, norm_fn=None, vmin=None, vmax=None, 
-                      terrain_nan_value=0):
-    """ Calculates hillshading using the pegtop method to blend the intensity with the data
-
-    """
-    if terrain is None:
-        terrain = data
-    
-    assert data.ndim == 2, "data must be 2 dimensional"
-    assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
-    
-    finite_terrain = _replace_nans(terrain, terrain_nan_value)
-    
-    if norm_fn is None:
-        norm_fn = _create_norm_function(data, vmin, vmax)
-        
-    norm_data = norm_fn(data)
-    rgba = cmap(norm_data)
-    
-    norm_intensities = normalized_intensity(finite_terrain, scale_terrain=scale_terrain, 
-                                            azimuth=azimuth, elevation=elevation)
-    return pegtop_blending(rgba, norm_intensities)
-
-
 def pegtop_blending(rgba, norm_intensities):
     """ Calculates image colors with the Pegtop Light shading of ImageMagick
     
@@ -120,22 +71,58 @@ def pegtop_blending(rgba, norm_intensities):
     
     # simulate illumination based on pegtop algorithm.
     return 2 * d * rgb + (rgb ** 2) * (1 - 2 * d)
-
-
-def normalized_intensity(terrain, scale_terrain=10, 
-                        azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
-    """ Calculates the shade inensity from the terrain gradiant and an artificial light source
     
-        Forked from Ran Novitsky's blog but with interted scale_terrain meaning
+    
+def hill_shade(data, terrain=None, 
+               cmap=DEF_CMAP, vmin=None, vmax=None, blend_function=hsv_blending,  
+               azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
+               scale_terrain=0.1, terrain_nan_value=0):
+    """ Calculates hill shading by putting the intensity in the Value layer of the HSV space.
+    """
+    if terrain is None:
+        terrain = data
+    
+    assert data.ndim == 2, "data must be 2 dimensional"
+    assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
+
+    finite_terrain = replace_nans(terrain, terrain_nan_value)
+    norm_intensities = matplotlib_intensity(finite_terrain, scale_terrain=scale_terrain, 
+                                            azimuth=azimuth, elevation=elevation)
+    
+    return color_data(data, norm_intensities, 
+                      cmap=cmap, vmin=vmin, vmax=vmax, blend_function=blend_function)
+
+
+def color_data(data, norm_intensities, 
+               cmap=DEF_CMAP, vmin=None, vmax=None, blend_function=hsv_blending):
+    """ Auxiliary function that colors the data and blends the normalized intensities.
+        Use this if you want to calculate your own normalized intensities, otherwise use the 
+        hill_shade function, which is more high-level. See this function for the explanation of
+        the parameters.
+    """
+    norm_data = normalize(data, vmin, vmax)
+    rgba = cmap(norm_data)
+    return blend_function(rgba, norm_intensities)
+
+
+    
+def matplotlib_intensity(terrain, scale_terrain=10, 
+                         azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
+    """ Calculates the shade intensity from the terrain gradient and an artificial light source
+    
+        Forked from Ran Novitsky's blog (but with inverted scale_terrain meaning), but the original
+        source is the LightSource.shade_rgb function of the matplotlib.colors module.
+        See:
             http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html
+            https://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/colors.py
             
         input:
             terrain - a 2-d array of the terrain
             scale_terrain - scaling value of the terrain. higher number = higher gradient
             azimuth - where the light comes from: 0 south ; 90 east ; 180 north ;
                         270 west
-            elevation - where the light comes from: 0 horison ; 90 zenith
-        output: a 2-d array of normalized hilshade
+            elevation - where the light comes from: 0 horiaon ; 90 zenith
+        output: a 2-d array of normalized hillshade
     """
     # convert alt, az to radians
     az = azimuth * pi / 180.0
