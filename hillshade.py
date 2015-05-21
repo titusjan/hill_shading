@@ -27,7 +27,7 @@ def _replace_nans(array, array_nan_value):
     
     
 def _create_norm_function(data, vmin, vmax):
-    """ Aux function to create a normalization function
+    """ Aux function to create a normalization function that clips at vmin and vmax
     """
     vmin = np.nanmin(data) if vmin is None else vmin
     vmax = np.nanmax(data) if vmax is None else vmax
@@ -52,13 +52,20 @@ def hill_shade_hsv(data, terrain=None,
         norm_fn = _create_norm_function(data, vmin, vmax)
 
     norm_data = norm_fn(data)
+    norm_intensities = normalized_intensity(finite_terrain, scale_terrain=scale_terrain, 
+                                            azimuth=azimuth, elevation=elevation)
+    return hsv_blending(norm_data, norm_intensities, cmap)
+
+
+def hsv_blending(norm_data, norm_intensities, cmap):
+    """ Calculates image colors by placing the normalized intensities in the Value layer of the
+        HSV color of the normalized data.
+        
+        Returns 3D array that can be plotted with matplotlib.imshow(). The last dimension is RGB.
+    """
     rgba = cmap(norm_data)
     hsv = rgb_to_hsv(rgba[:, :, :3])
-
-    intensity = calculate_intensity(finite_terrain, scale_terrain=scale_terrain, 
-                                    azimuth=azimuth, elevation=elevation)
-    hsv[:, :, 2] = intensity
-    
+    hsv[:, :, 2] = norm_intensities
     return hsv_to_rgb(hsv)
     
     
@@ -82,23 +89,30 @@ def hill_shade_pegtop(data, terrain=None,
     if norm_fn is None:
         norm_fn = _create_norm_function(data, vmin, vmax)
     
-    intensity = calculate_intensity(finite_terrain, scale_terrain=scale_terrain, 
-                                    azimuth=azimuth, elevation=elevation)
+    norm_intensities = normalized_intensity(finite_terrain, scale_terrain=scale_terrain, 
+                                            azimuth=azimuth, elevation=elevation)
     norm_data = norm_fn(data)
+    return pegtop_blending(norm_data, norm_intensities, cmap)
+
+
+def pegtop_blending(norm_data, norm_intensities, cmap):
+    """ Calculates image colors merging the data and intensity 
+        
+        Returns 3D array that can be plotted with matplotlib.imshow(). The last dimension is RGB.
+    """
     rgba = cmap(norm_data)    
     
     # get rgb of normalized data based on cmap
     rgb = rgba[:, :, :3]
     
     # form an rgb eqvivalent of intensity
-    d = intensity.repeat(3).reshape(rgb.shape)
+    d = norm_intensities.repeat(3).reshape(rgb.shape)
     
     # simulate illumination based on pegtop algorithm.
     return 2 * d * rgb + (rgb ** 2) * (1 - 2 * d)
 
 
-
-def calculate_intensity(terrain, scale_terrain=10, 
+def normalized_intensity(terrain, scale_terrain=10, 
                         azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
     """ Calculates the shade inensity from the terrain gradiant and an artificial light source
     

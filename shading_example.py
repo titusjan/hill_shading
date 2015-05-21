@@ -31,13 +31,13 @@ if len(sys.argv) > 1 and sys.argv[1]=='--qt':
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm
+from matplotlib import cm 
 from matplotlib.colors import LightSource
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 
 #from novitsky import set_shade, hillshade
-from hillshade import hill_shade_hsv, hill_shade_pegtop, calculate_intensity
+from hillshade import hill_shade_hsv, hill_shade_pegtop, normalized_intensity
 from hillshade import DEF_AZIMUTH, DEF_ELEVATION
 
 DEF_SCALE = 10.0
@@ -51,12 +51,12 @@ DEF_INTERP = 'nearest'
 # For choosing a good color map see:
 #    http://matplotlib.org/users/colormaps.html 
 
-#DEF_CMAP = plt.cm.rainbow
+DEF_CMAP = cm.rainbow
 #DEF_CMAP = plt.cm.cool
 #DEF_CMAP = plt.cm.cubehelix # doesn't work well
 #DEF_CMAP = plt.cm.hot
 #DEF_CMAP = plt.cm.bwr
-DEF_CMAP = plt.cm.gist_earth
+#DEF_CMAP = plt.cm.gist_earth
     
 
 
@@ -67,6 +67,7 @@ def add_colorbar(fig, axes, cmap, norm=None):
     colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
     #colorbar = fig.colorbar(image, cax=colorbar_axes, orientation='vertical')
     colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, orientation='vertical')
+    return colorbar
 
 
 def remove_ticks(axes):
@@ -79,7 +80,7 @@ def remove_ticks(axes):
 def plot_data(fig, axes, data, cmap=DEF_CMAP, interpolation=DEF_INTERP):
     " Shows data without hill shading"
 
-    image = axes.imshow(data, cmap, interpolation=interpolation)
+    _image = axes.imshow(data, cmap, interpolation=interpolation)
     axes.set_title('No shading')
     add_colorbar(fig, axes, cmap)
     remove_ticks(axes)
@@ -97,11 +98,11 @@ def plot_mpl_hs(fig, axes, data, cmap=DEF_CMAP,
     # Norm will not be used to normalize rgb in in the imshow() call but 
     # is used to normalize the color bar. An alternative is to use ColorbarBase
     # as is demonstrated in novitsky_hill_shading below
-    image = axes.imshow(rgb, cmap, norm=norm, interpolation=interpolation)
+    _image = axes.imshow(rgb, cmap, norm=norm, interpolation=interpolation)
     axes.set_title('Matplotlib hill shading')
     add_colorbar(fig, axes, cmap)
     remove_ticks(axes)
-    
+
 
 def plot_pegtop_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP, 
                    azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE,
@@ -114,7 +115,7 @@ def plot_pegtop_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP,
                             azimuth=azimuth, elevation=elevation, scale_terrain = scale_terrain, 
                             cmap=cmap, norm_fn=norm)
     
-    image = axes.imshow(rgb, interpolation=interpolation)
+    _image = axes.imshow(rgb, interpolation=interpolation)
 
     axes.set_title('Pegtop hill shading')
     add_colorbar(fig, axes, cmap)
@@ -131,7 +132,7 @@ def plot_hsv_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP,
     rgb = hill_shade_hsv(data, terrain=terrain, 
                          azimuth=azimuth, elevation=elevation, scale_terrain = scale_terrain, 
                          cmap=cmap, norm_fn=norm)
-    image = axes.imshow(rgb, interpolation=interpolation)
+    _image = axes.imshow(rgb, interpolation=interpolation)
 
     axes.set_title('HSV hill shading')
     add_colorbar(fig, axes, cmap, norm=norm)
@@ -144,12 +145,12 @@ def plot_intensity(fig, axes, terrain, cmap=plt.cm.gist_gray,
     " Shows only the shading component of the shading by Ran Novitsky"
     # Intensity will always be between 0 and 1
     
-    intensity = calculate_intensity(terrain, azimuth=azimuth, elevation=elevation, 
+    intensity = normalized_intensity(terrain, azimuth=azimuth, elevation=elevation, 
                                      scale_terrain = scale_terrain)
     axes.set_title('Intensity')
     
-    image = axes.imshow(intensity, cmap, interpolation=interpolation)
-    add_colorbar(fig, axes, cmap, norm=norm)
+    _image = axes.imshow(intensity, cmap, interpolation=interpolation)
+    add_colorbar(fig, axes, cmap)
     remove_ticks(axes)    
 
     
@@ -199,5 +200,8 @@ def main():
 if __name__ == "__main__":
     main()
     if mpl.is_interactive() and  mpl.get_backend() == 'MacOSX':
-        raw_input('please press enter\n')
+        #raw_input('please press enter\n') # python 2
+        input('please press enter\n')
+        
+        
     
