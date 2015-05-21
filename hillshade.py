@@ -52,18 +52,21 @@ def hill_shade_hsv(data, terrain=None,
         norm_fn = _create_norm_function(data, vmin, vmax)
 
     norm_data = norm_fn(data)
+    rgba = cmap(norm_data)
     norm_intensities = normalized_intensity(finite_terrain, scale_terrain=scale_terrain, 
                                             azimuth=azimuth, elevation=elevation)
-    return hsv_blending(norm_data, norm_intensities, cmap)
+    return hsv_blending(rgba, norm_intensities)
 
 
-def hsv_blending(norm_data, norm_intensities, cmap):
+def hsv_blending(rgba, norm_intensities):
     """ Calculates image colors by placing the normalized intensities in the Value layer of the
         HSV color of the normalized data.
+                
+        :param rgba: [nrows, ncols, 3|4] RGB or RGBA array. The alpha layer will be ignored.
+        :param norm_intensities: normalized intensities
         
         Returns 3D array that can be plotted with matplotlib.imshow(). The last dimension is RGB.
     """
-    rgba = cmap(norm_data)
     hsv = rgb_to_hsv(rgba[:, :, :3])
     hsv[:, :, 2] = norm_intensities
     return hsv_to_rgb(hsv)
@@ -74,9 +77,7 @@ def hill_shade_pegtop(data, terrain=None,
                       cmap=DEF_CMAP, norm_fn=None, vmin=None, vmax=None, 
                       terrain_nan_value=0):
     """ Calculates hillshading using the pegtop method to blend the intensity with the data
-    
-        Forked from Ran Novitsky's blog
-            http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html
+
     """
     if terrain is None:
         terrain = data
@@ -88,20 +89,29 @@ def hill_shade_pegtop(data, terrain=None,
     
     if norm_fn is None:
         norm_fn = _create_norm_function(data, vmin, vmax)
+        
+    norm_data = norm_fn(data)
+    rgba = cmap(norm_data)
     
     norm_intensities = normalized_intensity(finite_terrain, scale_terrain=scale_terrain, 
                                             azimuth=azimuth, elevation=elevation)
-    norm_data = norm_fn(data)
-    return pegtop_blending(norm_data, norm_intensities, cmap)
+    return pegtop_blending(rgba, norm_intensities)
 
 
-def pegtop_blending(norm_data, norm_intensities, cmap):
-    """ Calculates image colors merging the data and intensity 
+def pegtop_blending(rgba, norm_intensities):
+    """ Calculates image colors with the Pegtop Light shading of ImageMagick
+    
+        See:
+            http://www.imagemagick.org/Usage/compose/#pegtoplight
+    
+        Forked from Ran Novitsky's blog
+            http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html    
+        
+        :param rgba: [nrows, ncols, 3|4] RGB or RGBA array. The alpha layer will be ignored.
+        :param norm_intensities: normalized intensities
         
         Returns 3D array that can be plotted with matplotlib.imshow(). The last dimension is RGB.
     """
-    rgba = cmap(norm_data)    
-    
     # get rgb of normalized data based on cmap
     rgb = rgba[:, :, :3]
     
