@@ -8,11 +8,23 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import pi, cos, sin, gradient, arctan, hypot, arctan2
-from matplotlib import cm
 from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
 
 DEF_AZIMUTH = 165   # degrees
 DEF_ELEVATION = 45  # degrees
+
+
+# For a list of colormaps see:
+#    http://matplotlib.org/examples/color/colormaps_reference.html
+
+# For choosing a good color map see:
+#    http://matplotlib.org/users/colormaps.html 
+
+#DEF_CMAP = plt.cm.cool
+#DEF_CMAP = plt.cm.cubehelix # doesn't work well with HSV blending
+#DEF_CMAP = plt.cm.hot       # doesn't work well with HSV blending
+#DEF_CMAP = plt.cm.bwr
+#DEF_CMAP = plt.cm.gist_earth
 DEF_CMAP = plt.cm.gist_earth
     
     

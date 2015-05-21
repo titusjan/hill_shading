@@ -33,26 +33,11 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 
 from hillshade import hill_shade, rgb_blending, hsv_blending, pegtop_blending, matplotlib_intensity
-from hillshade import DEF_AZIMUTH, DEF_ELEVATION
+from hillshade import DEF_AZIMUTH, DEF_ELEVATION, DEF_CMAP
 
 DEF_SCALE = 10.0
 #DEF_INTERP = 'nearest'
 DEF_INTERP = None # default interpolation
-
-
-# For a list of colormaps see:
-#    http://matplotlib.org/examples/color/colormaps_reference.html
-
-# For choosing a good color map see:
-#    http://matplotlib.org/users/colormaps.html 
-
-DEF_CMAP = cm.rainbow
-#DEF_CMAP = plt.cm.cool
-#DEF_CMAP = plt.cm.cubehelix # doesn't work well with HSV blending
-#DEF_CMAP = plt.cm.hot       # doesn't work well with HSV blending
-#DEF_CMAP = plt.cm.bwr
-#DEF_CMAP = plt.cm.gist_earth
-    
 
 
 def add_colorbar(fig, axes, cmap, norm=None):
@@ -137,8 +122,6 @@ def plot_rgb_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP,
                      cmap=cmap, blend_function=rgb_blending, 
                      azimuth=azimuth, elevation=elevation, scale_terrain = scale_terrain) 
     
-    print("RBG blending average: {}".format(np.mean(rgb)))
-    
     axes.set_title('RGB blending')
     axes.imshow(rgb, interpolation=interpolation)
     add_colorbar(fig, axes, cmap, norm=mpl.colors.Normalize(data))
@@ -153,8 +136,6 @@ def plot_hsv_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP,
     rgb = hill_shade(data, terrain=terrain,
                      cmap=cmap, blend_function=hsv_blending, 
                      azimuth=azimuth, elevation=elevation, scale_terrain = scale_terrain) 
-                         
-    print("HSV blending average: {}".format(np.mean(rgb)))
                          
     axes.imshow(rgb, interpolation=interpolation)
     axes.set_title('HSV blending')
@@ -177,11 +158,20 @@ def generate_hills_with_noise():
 def main():
 
     if 1:
+        # Shows that the matplotlib and pegtop implementation rely heavily on the intensity of the
+        # color map and therefore give poor results when using a color map that has less 
+        # variation in intensity, such as the rainbow plot.
         data = generate_concentric_circles()
         terrain = generate_concentric_circles()
+        cmap = plt.cm.rainbow
     else:
+        # Shows that hsv-blending can give wrong results when combined wiht a color map that 
+        # includes colors close to black or white (such as 'cubehelix'). Note the incorrect purple
+        # spot where the data is close to zero.
+        # The matploblib hill shading cannot have a different terrain and data so shows only data.
         data    = generate_hills_with_noise()
         terrain = generate_concentric_circles()
+        cmap = plt.cm.cubehelix
         
     assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
 
@@ -192,12 +182,12 @@ def main():
     
     if 1:
         scale = 10
-        plot_data     (fig, axes_list[0, 0], data)
+        plot_data     (fig, axes_list[0, 0], data, cmap=cmap)
         plot_intensity(fig, axes_list[0, 1], terrain, scale_terrain = scale)
-        plot_mpl_hs   (fig, axes_list[1, 0], data)
-        plot_pegtop_hs(fig, axes_list[1, 1], data, terrain=terrain, scale_terrain = scale)
-        plot_rgb_hs   (fig, axes_list[2, 0], data, terrain=terrain, scale_terrain = scale)
-        plot_hsv_hs   (fig, axes_list[2, 1], data, terrain=terrain, scale_terrain = scale)
+        plot_mpl_hs   (fig, axes_list[1, 0], data, cmap=cmap)
+        plot_pegtop_hs(fig, axes_list[1, 1], data, terrain=terrain, scale_terrain = scale, cmap=cmap)
+        plot_rgb_hs   (fig, axes_list[2, 0], data, terrain=terrain, scale_terrain = scale, cmap=cmap)
+        plot_hsv_hs   (fig, axes_list[2, 1], data, terrain=terrain, scale_terrain = scale, cmap=cmap)
     else:
         plot_intensity(fig, axes_list[0, 0], terrain, scale_terrain = 0.001)
         plot_intensity(fig, axes_list[0, 1], terrain, scale_terrain = 1)
