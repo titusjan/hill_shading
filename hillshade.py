@@ -35,6 +35,25 @@ def normalize(values, vmin=None, vmax=None):
     return norm_fn(values) 
     
 
+def rgb_blending(rgba, norm_intensities):
+    """ Calculates image colors by multiplying the rgb value with the normalized intensities
+                
+        :param rgba: [nrows, ncols, 3|4] RGB or RGBA array. The alpha layer will be ignored.
+        :param norm_intensities: normalized intensities
+        
+        Returns 3D array that can be plotted with matplotlib.imshow(). The last dimension is RGB.
+    """
+    print("hsv blending")
+    assert rgba.ndim == 3, "rgb must be 3 dimensional"
+    assert norm_intensities.ndim == 2, "norm_intensities must be 2 dimensional"
+    
+    # Add artificial dimension of length 1 at the end of norm_intensities so that it can be
+    # multiplied with the rgb array using numpy broad casting
+    expanded_intensities = np.expand_dims(norm_intensities, axis=2) 
+    rgb = rgba[:, :, :3]
+    return rgb * expanded_intensities
+        
+
 def hsv_blending(rgba, norm_intensities):
     """ Calculates image colors by placing the normalized intensities in the Value layer of the
         HSV color of the normalized data.
@@ -44,7 +63,9 @@ def hsv_blending(rgba, norm_intensities):
         
         Returns 3D array that can be plotted with matplotlib.imshow(). The last dimension is RGB.
     """
-    hsv = rgb_to_hsv(rgba[:, :, :3])
+    print("hsv blending")
+    rgb = rgba[:, :, :3]
+    hsv = rgb_to_hsv(rgb)
     hsv[:, :, 2] = norm_intensities
     return hsv_to_rgb(hsv)
     

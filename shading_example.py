@@ -34,7 +34,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 
 #from novitsky import set_shade, hillshade
-from hillshade import hill_shade, hsv_blending, pegtop_blending, matplotlib_intensity
+from hillshade import hill_shade, rgb_blending, hsv_blending, pegtop_blending, matplotlib_intensity
 from hillshade import DEF_AZIMUTH, DEF_ELEVATION
 
 DEF_SCALE = 10.0
@@ -58,7 +58,7 @@ DEF_CMAP = cm.rainbow
 
 
 def add_colorbar(fig, axes, cmap, norm=None):
-    """ Aux function that makes a colorbar from the image and adds it to the figure
+    """ Aux function that makes a color bar from the image and adds it to the figure
     """
     divider = make_axes_locatable(axes)    
     colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
@@ -77,7 +77,7 @@ def plot_data(fig, axes, data, cmap=DEF_CMAP, interpolation=DEF_INTERP):
     """ Draws an image of the data without shading
     """
     axes.imshow(data, cmap, interpolation=interpolation)
-    axes.set_title('No shading')
+    axes.set_title('Data without shading')
     add_colorbar(fig, axes, cmap)
     remove_ticks(axes)
 
@@ -89,7 +89,7 @@ def plot_intensity(fig, axes, terrain, cmap=plt.cm.gist_gray,
     """
     intensity = matplotlib_intensity(terrain, azimuth=azimuth, elevation=elevation, 
                                      scale_terrain = scale_terrain)
-    axes.set_title('Intensity')
+    axes.set_title('Terrain intensity')
     axes.imshow(intensity, cmap, interpolation=interpolation)
     add_colorbar(fig, axes, cmap)
     remove_ticks(axes)    
@@ -103,7 +103,7 @@ def plot_mpl_hs(fig, axes, data, cmap=DEF_CMAP,
     ls = LightSource(azdeg=azimuth, altdeg=elevation)
     rgb = ls.shade(data, cmap=cmap)
     
-    norm = mpl.colors.Normalize(vmin=np.min(data), vmax=np.max(data))
+    norm = mpl.colors.Normalize(data)
     
     # Norm will not be used to normalize rgb in in the imshow() call but 
     # is used to normalize the color bar. An alternative is to use ColorbarBase
@@ -129,6 +129,38 @@ def plot_pegtop_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP,
     add_colorbar(fig, axes, cmap, norm=mpl.colors.Normalize(data))
     remove_ticks(axes)
 
+
+def plot_rgb_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP, 
+                azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE, 
+                interpolation=DEF_INTERP):
+    """ Draws an image of hill shading with RGB blending
+    """
+    rgb = hill_shade(data, terrain=terrain,
+                     cmap=cmap, blend_function=rgb_blending, 
+                     azimuth=azimuth, elevation=elevation, scale_terrain = scale_terrain) 
+    
+    hsv = hill_shade(data, terrain=terrain,
+                     cmap=cmap, blend_function=hsv_blending, 
+                     azimuth=azimuth, elevation=elevation, scale_terrain = scale_terrain)
+    
+    rgb_v = mpl.colors.rgb_to_hsv(rgb)[...,2]
+    hsv_v = mpl.colors.rgb_to_hsv(hsv)[...,2]
+    diff = rgb_v - hsv_v     
+    
+    print("rgb average: {}".format(np.mean(rgb)))
+    print("hsv average: {}".format(np.mean(hsv)))
+    
+    if 0:                     
+        axes.set_title('difference')
+        axes.imshow(diff, interpolation=interpolation)
+        add_colorbar(fig, axes, cmap, norm=mpl.colors.Normalize(diff))
+    else:                     
+        axes.set_title('RGB blending')
+        axes.imshow(rgb, interpolation=interpolation)
+        add_colorbar(fig, axes, cmap, norm=mpl.colors.Normalize(data))
+        
+    remove_ticks(axes)  
+    
 
 def plot_hsv_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP, 
                 azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE, 
@@ -171,13 +203,16 @@ def main():
     # Uncomment the line below to see Nans in the terrain
     #terrain[20:40, 30:50] = np.nan
 
-    fig, axes_list = plt.subplots(2, 2, figsize=(10, 10))
+    fig, axes_list = plt.subplots(3, 2, figsize=(15, 10))
     
     if 1:
+        scale = 10
         plot_data     (fig, axes_list[0, 0], data)
-        plot_mpl_hs   (fig, axes_list[0, 1], data)
-        plot_pegtop_hs(fig, axes_list[1, 0], data, terrain=terrain, scale_terrain = 10)
-        plot_hsv_hs   (fig, axes_list[1, 1], data, terrain=terrain, scale_terrain = 10)
+        plot_intensity(fig, axes_list[0, 1], terrain, scale_terrain = scale)
+        plot_mpl_hs   (fig, axes_list[1, 0], data)
+        plot_pegtop_hs(fig, axes_list[1, 1], data, terrain=terrain, scale_terrain = scale)
+        plot_rgb_hs   (fig, axes_list[2, 0], data, terrain=terrain, scale_terrain = scale)
+        plot_hsv_hs   (fig, axes_list[2, 1], data, terrain=terrain, scale_terrain = scale)
     else:
         plot_intensity(fig, axes_list[0, 0], terrain, scale_terrain = 0.001)
         plot_intensity(fig, axes_list[0, 1], terrain, scale_terrain = 1)
