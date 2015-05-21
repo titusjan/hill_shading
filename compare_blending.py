@@ -1,13 +1,13 @@
-""" Tests various hill shading algorithms
+""" Tests various hill shading implementation which differ in the way they blend the
+    shading intensity and the color of the data.
 
-Matplotlib shading:
+    Matplotlib shading:
     http://matplotlib.org/examples/pylab_examples/shading_example.html?highlight=codex%20shade
 
-Ran Novitsky
+    Ran Novitsky
     http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html
 
-
-TODO: look at
+    TODO: look at
     (http://reference.wolfram.com/mathematica/ref/ReliefPlot.html)
     or Generic Mapping Tools (http://gmt.soest.hawaii.edu/)
     
@@ -28,12 +28,10 @@ if len(sys.argv) > 1 and sys.argv[1]=='--qt':
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm 
 from matplotlib.colors import LightSource
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 
-#from novitsky import set_shade, hillshade
 from hillshade import hill_shade, rgb_blending, hsv_blending, pegtop_blending, matplotlib_intensity
 from hillshade import DEF_AZIMUTH, DEF_ELEVATION
 
@@ -48,8 +46,8 @@ DEF_INTERP = None # default interpolation
 # For choosing a good color map see:
 #    http://matplotlib.org/users/colormaps.html 
 
-#DEF_CMAP = cm.rainbow
-DEF_CMAP = plt.cm.cool
+DEF_CMAP = cm.rainbow
+#DEF_CMAP = plt.cm.cool
 #DEF_CMAP = plt.cm.cubehelix # doesn't work well with HSV blending
 #DEF_CMAP = plt.cm.hot       # doesn't work well with HSV blending
 #DEF_CMAP = plt.cm.bwr
