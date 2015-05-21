@@ -7,7 +7,7 @@ from __future__ import division
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy import pi, cos, sin, gradient, arctan, hypot, arctan2
+from intensity import  diffuse_intensity
 from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
 
 DEF_AZIMUTH = 165   # degrees
@@ -120,7 +120,7 @@ def hill_shade(data, terrain=None,
     assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
 
     finite_terrain = replace_nans(terrain, terrain_nan_value)
-    norm_intensities = matplotlib_intensity(finite_terrain, scale_terrain=scale_terrain, 
+    norm_intensities = diffuse_intensity(finite_terrain, scale_terrain=scale_terrain, 
                                             azimuth=azimuth, elevation=elevation)
     
     return color_data(data, norm_intensities, 
@@ -137,38 +137,4 @@ def color_data(data, norm_intensities,
     norm_data = normalize(data, vmin, vmax)
     rgba = cmap(norm_data)
     return blend_function(rgba, norm_intensities)
-
-
-    
-def matplotlib_intensity(terrain, scale_terrain=10, 
-                         azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
-    """ Calculates the shade intensity from the terrain gradient and an artificial light source
-    
-        Forked from Ran Novitsky's blog (but with inverted scale_terrain meaning), but the original
-        source is the LightSource.shade_rgb function of the matplotlib.colors module.
-        See:
-            http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html
-            https://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/colors.py
-            
-        input:
-            terrain - a 2-d array of the terrain
-            scale_terrain - scaling value of the terrain. higher number = higher gradient
-            azimuth - where the light comes from: 0 south ; 90 east ; 180 north ;
-                        270 west
-            elevation - where the light comes from: 0 horiaon ; 90 zenith
-        output: a 2-d array of normalized hillshade
-    """
-    # convert alt, az to radians
-    az = azimuth * pi / 180.0
-    alt = elevation * pi / 180.0
-    # gradient in x and y directions
-    dx, dy = gradient(terrain * scale_terrain)
-    slope = 0.5 * pi - arctan(hypot(dx, dy))
-    aspect = arctan2(dx, dy)
-    intensity = sin(alt) * sin(slope) + cos(alt) * \
-        cos(slope) * cos(-az - aspect - 0.5 * pi)
-    
-    intensity = (intensity - intensity.min()) / (intensity.max() - intensity.min())
-        
-    return intensity
 

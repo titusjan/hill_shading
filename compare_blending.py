@@ -180,19 +180,13 @@ def main():
 
     fig, axes_list = plt.subplots(3, 2, figsize=(15, 10))
     
-    if 1:
-        scale = 10
-        plot_data     (fig, axes_list[0, 0], data, cmap=cmap)
-        plot_intensity(fig, axes_list[0, 1], terrain, scale_terrain = scale)
-        plot_mpl_hs   (fig, axes_list[1, 0], data, cmap=cmap)
-        plot_pegtop_hs(fig, axes_list[1, 1], data, terrain=terrain, scale_terrain = scale, cmap=cmap)
-        plot_rgb_hs   (fig, axes_list[2, 0], data, terrain=terrain, scale_terrain = scale, cmap=cmap)
-        plot_hsv_hs   (fig, axes_list[2, 1], data, terrain=terrain, scale_terrain = scale, cmap=cmap)
-    else:
-        plot_intensity(fig, axes_list[0, 0], terrain, scale_terrain = 0.001)
-        plot_intensity(fig, axes_list[0, 1], terrain, scale_terrain = 1)
-        plot_intensity(fig, axes_list[1, 0], terrain, scale_terrain = 10)
-        plot_intensity(fig, axes_list[1, 1], terrain, scale_terrain = 100)
+    scale = 10
+    plot_data     (fig, axes_list[0, 0], data, cmap=cmap)
+    plot_intensity(fig, axes_list[0, 1], terrain, scale_terrain = scale)
+    plot_mpl_hs   (fig, axes_list[1, 0], data, cmap=cmap)
+    plot_pegtop_hs(fig, axes_list[1, 1], data, terrain=terrain, scale_terrain = scale, cmap=cmap)
+    plot_rgb_hs   (fig, axes_list[2, 0], data, terrain=terrain, scale_terrain = scale, cmap=cmap)
+    plot_hsv_hs   (fig, axes_list[2, 1], data, terrain=terrain, scale_terrain = scale, cmap=cmap)
 
     plt.show()
 
