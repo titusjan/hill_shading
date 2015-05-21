@@ -48,10 +48,10 @@ DEF_INTERP = None # default interpolation
 # For choosing a good color map see:
 #    http://matplotlib.org/users/colormaps.html 
 
-DEF_CMAP = cm.rainbow
-#DEF_CMAP = plt.cm.cool
-#DEF_CMAP = plt.cm.cubehelix # doesn't work well
-#DEF_CMAP = plt.cm.hot
+#DEF_CMAP = cm.rainbow
+DEF_CMAP = plt.cm.cool
+#DEF_CMAP = plt.cm.cubehelix # doesn't work well with HSV blending
+#DEF_CMAP = plt.cm.hot       # doesn't work well with HSV blending
 #DEF_CMAP = plt.cm.bwr
 #DEF_CMAP = plt.cm.gist_earth
     

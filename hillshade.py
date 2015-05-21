@@ -56,6 +56,9 @@ def rgb_blending(rgba, norm_intensities):
 def hsv_blending(rgba, norm_intensities):
     """ Calculates image colors by placing the normalized intensities in the Value layer of the
         HSV color of the normalized data.
+        
+        IMPORTANT: may give incorrect results for color maps that include colors close to 
+            white and black (e.g. cubehelix or hot). 
                 
         :param rgba: [nrows, ncols, 3|4] RGB or RGBA array. The alpha layer will be ignored.
         :param norm_intensities: normalized intensities
@@ -93,7 +96,7 @@ def pegtop_blending(rgba, norm_intensities):
     
     
 def hill_shade(data, terrain=None, 
-               cmap=DEF_CMAP, vmin=None, vmax=None, blend_function=hsv_blending,  
+               cmap=DEF_CMAP, vmin=None, vmax=None, blend_function=rgb_blending,  
                azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
                scale_terrain=0.1, terrain_nan_value=0):
     """ Calculates hill shading by putting the intensity in the Value layer of the HSV space.
