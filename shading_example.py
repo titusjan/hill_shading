@@ -38,8 +38,8 @@ from hillshade import hill_shade, rgb_blending, hsv_blending, pegtop_blending, m
 from hillshade import DEF_AZIMUTH, DEF_ELEVATION
 
 DEF_SCALE = 10.0
-DEF_INTERP = 'nearest'
-#DEF_INTERP = None
+#DEF_INTERP = 'nearest'
+DEF_INTERP = None # default interpolation
 
 
 # For a list of colormaps see:
@@ -139,26 +139,11 @@ def plot_rgb_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP,
                      cmap=cmap, blend_function=rgb_blending, 
                      azimuth=azimuth, elevation=elevation, scale_terrain = scale_terrain) 
     
-    hsv = hill_shade(data, terrain=terrain,
-                     cmap=cmap, blend_function=hsv_blending, 
-                     azimuth=azimuth, elevation=elevation, scale_terrain = scale_terrain)
+    print("RBG blending average: {}".format(np.mean(rgb)))
     
-    rgb_v = mpl.colors.rgb_to_hsv(rgb)[...,2]
-    hsv_v = mpl.colors.rgb_to_hsv(hsv)[...,2]
-    diff = rgb_v - hsv_v     
-    
-    print("rgb average: {}".format(np.mean(rgb)))
-    print("hsv average: {}".format(np.mean(hsv)))
-    
-    if 0:                     
-        axes.set_title('difference')
-        axes.imshow(diff, interpolation=interpolation)
-        add_colorbar(fig, axes, cmap, norm=mpl.colors.Normalize(diff))
-    else:                     
-        axes.set_title('RGB blending')
-        axes.imshow(rgb, interpolation=interpolation)
-        add_colorbar(fig, axes, cmap, norm=mpl.colors.Normalize(data))
-        
+    axes.set_title('RGB blending')
+    axes.imshow(rgb, interpolation=interpolation)
+    add_colorbar(fig, axes, cmap, norm=mpl.colors.Normalize(data))
     remove_ticks(axes)  
     
 
@@ -170,6 +155,8 @@ def plot_hsv_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP,
     rgb = hill_shade(data, terrain=terrain,
                      cmap=cmap, blend_function=hsv_blending, 
                      azimuth=azimuth, elevation=elevation, scale_terrain = scale_terrain) 
+                         
+    print("HSV blending average: {}".format(np.mean(rgb)))
                          
     axes.imshow(rgb, interpolation=interpolation)
     axes.set_title('HSV blending')

@@ -43,7 +43,6 @@ def rgb_blending(rgba, norm_intensities):
         
         Returns 3D array that can be plotted with matplotlib.imshow(). The last dimension is RGB.
     """
-    print("hsv blending")
     assert rgba.ndim == 3, "rgb must be 3 dimensional"
     assert norm_intensities.ndim == 2, "norm_intensities must be 2 dimensional"
     
@@ -63,7 +62,6 @@ def hsv_blending(rgba, norm_intensities):
         
         Returns 3D array that can be plotted with matplotlib.imshow(). The last dimension is RGB.
     """
-    print("hsv blending")
     rgb = rgba[:, :, :3]
     hsv = rgb_to_hsv(rgb)
     hsv[:, :, 2] = norm_intensities
