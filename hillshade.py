@@ -7,7 +7,7 @@ from __future__ import division
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from intensity import  diffuse_intensity
+from intensity import  relative_surface_intensity
 from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
 
 DEF_AZIMUTH = 135   # degrees
@@ -138,7 +138,7 @@ def hill_shade(data, terrain=None,
     assert data.ndim == 2, "data must be 2 dimensional"
     assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
 
-    diff_int = diffuse_intensity(terrain, azimuth=azimuth, elevation=elevation)
+    diff_int = relative_surface_intensity(terrain, azimuth=azimuth, elevation=elevation)
     
     rgba = color_data(data, cmap=cmap, vmin=vmin, vmax=vmax, norm=norm)
     return blend_function(rgba, diff_int)

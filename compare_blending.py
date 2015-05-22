@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LightSource
 
 from plotting import make_test_data, draw, mpl_hill_shade
-from intensity import matplotlib_intensity
+from intensity import mpl_surface_intensity
 from hillshade import hsv_blending, pegtop_blending, rgb_blending, DEF_AZIMUTH, DEF_ELEVATION
 
 def main():
@@ -52,7 +52,7 @@ def main():
          image_data = data)
 
     draw(ax[0, 1], cmap=plt.cm.gray, title='Matplotlib intensity', 
-         image_data = matplotlib_intensity(terrain))
+         image_data = mpl_surface_intensity(terrain))
 
     ls = LightSource(azdeg=DEF_AZIMUTH, altdeg=DEF_ELEVATION)
     draw(ax[1, 0], cmap=cmap, norm=cnorm, title='Matplotlib hill shading', 

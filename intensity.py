@@ -1,4 +1,4 @@
-""" Functions that calculate intensity of light falling on a surface (terrain)
+""" Functions that calculate intensity (irradiance) of light falling on a surface (terrain)
 
 """
 from __future__ import print_function
@@ -27,12 +27,17 @@ def polar_to_cart3d(azimuth, elevation):
 
 def combined_intensities(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
     
-    return diffuse_intensity(terrain, azimuth=azimuth, elevation=elevation)
+    return relative_surface_intensity(terrain, azimuth=azimuth, elevation=elevation)
     
     
 
-def diffuse_intensity(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
-    
+def relative_surface_intensity(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
+    """ Calculates the intensity that falls on the surface for light of intensity 1. 
+        This equals cosine(theta) where theta is the angle between the direction of the light 
+        source and the surface normal. When this number is negative, the this angle is > 90 degrees. 
+        In that case the surface receives no light so we clip to 0. The result of this function is 
+        therefore always between 0 and 1.
+    """
     normals = surface_unit_normals(terrain)
     light = polar_to_cart3d(azimuth, elevation)
     
@@ -40,8 +45,8 @@ def diffuse_intensity(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
                                    err_msg="sanity check: light vector should have length 1")
     
     intensity = np.dot(normals, light)
-    assert np.all(intensity >= -1.0), "sanity check: cosinus(omega) should be >= -1"
-    assert np.all(intensity <= 1.0), "sanity check: cosinus(omega) should be <= 1"
+    assert np.all(intensity >= -1.0), "sanity check: cosinus(theta) should be >= -1"
+    assert np.all(intensity <= 1.0), "sanity check: cosinus(theta) should be <= 1"
     
     # Where the dot product is smaller than 0 the angle between the light source and the surface
     # is larger than 90 degrees. These pixels receive no light so we clip the intensity to 0.
@@ -71,11 +76,12 @@ def surface_unit_normals(terrain):
     return surface_normals / np.expand_dims(normal_magnitudes, axis=2)  
 
     
-def matplotlib_intensity(terrain, 
+def mpl_surface_intensity(terrain, 
                          azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
                          azim0_is_east=False, normalize=False):
-    """ Calculates the shade intensity from the terrain gradient and an artificial light source
-    
+    """ Calculates the intensity that falls on the surface when illuminated with intensity 1 
+        
+        This is the implementation as is used in matplotlib.
         Forked from Ran Novitsky's blog (but without the scale terrain parameter).
         The original source is the LightSource.shade_rgb function of the matplotlib.colors module.
         See:
@@ -107,8 +113,8 @@ def matplotlib_intensity(terrain,
         aspect = arctan2(dx, dy)
     intensity = sin(alt) * sin(slope) + cos(alt) * cos(slope) * cos(-az - aspect - 0.5 * pi)
 
-    assert np.all(intensity >= -1.0), "sanity check: cosinus(omega) should be >= -1"
-    assert np.all(intensity <= 1.0), "sanity check: cosinus(omega) should be <= 1"
+    assert np.all(intensity >= -1.0), "sanity check: cosinus(theta) should be >= -1"
+    assert np.all(intensity <= 1.0), "sanity check: cosinus(theta) should be <= 1"
 
     # The matplotlib source just normalizes the intensities. However, I believe that their 
     # intensities are the same as mine so that, where they are < 0 the angle between the light 

@@ -10,7 +10,7 @@ plt.ioff()
 import matplotlib as mpl
 from plotting import make_test_data, draw
 from hillshade import INTENSITY_CMAP
-from intensity import matplotlib_intensity, combined_intensities
+from intensity import mpl_surface_intensity, combined_intensities
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
     inorm = mpl.colors.Normalize(vmin=0.0, vmax=1.0)
 
     # Draw the terrain as color map
-    draw(ax[0, 0], cmap=plt.cm.gist_earth, title='No shading', 
+    draw(ax[0, 0], cmap=plt.cm.gist_earth, title='No shading', ticks=True,  
          image_data = terrain)
     
     # Draw empty space
@@ -49,12 +49,12 @@ def main():
         
         draw(ax[0, col], cmap=cmap, norm=inorm, 
              title="MPL normalized (azim = {}, elev = {})".format(azim, elev),  
-             image_data = matplotlib_intensity(terrain, azimuth=azim, elevation=elev, 
+             image_data = mpl_surface_intensity(terrain, azimuth=azim, elevation=elev, 
                                                azim0_is_east=azim0_is_east, normalize=True))
            
         draw(ax[1, col], cmap=cmap, norm=inorm, 
              title="MPL (azim = {}, elev = {})".format(azim, elev), 
-             image_data = matplotlib_intensity(terrain, azimuth=azim, elevation=elev, 
+             image_data = mpl_surface_intensity(terrain, azimuth=azim, elevation=elev, 
                                                azim0_is_east=azim0_is_east, normalize=False))   
         
         draw(ax[2, col], cmap=cmap, norm=inorm, 

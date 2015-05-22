@@ -9,7 +9,7 @@ import matplotlib as mpl
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 
-from intensity import matplotlib_intensity
+from intensity import mpl_surface_intensity
 from hillshade import DEF_AZIMUTH, DEF_ELEVATION, DEF_CMAP, color_data, rgb_blending
 
 DEF_SCALE = 10.0
@@ -83,7 +83,7 @@ def draw(axes, image_data, title='',
          cmap=None, norm=None,  
          interpolation=IMSHOW_INTERP,
          origin=IMSHOW_ORIGIN,  
-         ticks=True):
+         ticks=False):
     """ Makes an image plot. 
         The image_data can be any array that can be plotted with the matplotlib imshow function.
     """
@@ -119,7 +119,7 @@ def mpl_hill_shade(data, terrain=None,
     assert data.ndim == 2, "data must be 2 dimensional"
     assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
 
-    norm_intensities = matplotlib_intensity(terrain, azimuth=azimuth, elevation=elevation)
+    norm_intensities = mpl_surface_intensity(terrain, azimuth=azimuth, elevation=elevation)
     
     rgba = color_data(data, cmap=cmap, vmin=vmin, vmax=vmax, norm=norm)
     return blend_function(rgba, norm_intensities)
