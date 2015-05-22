@@ -1,200 +1,83 @@
-""" Tests various hill shading implementation which differ in the way they blend the
-    shading intensity and the color of the data.
-
-    Matplotlib shading:
-    http://matplotlib.org/examples/pylab_examples/shading_example.html?highlight=codex%20shade
-
-    Ran Novitsky
-    http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html
-
-    TODO: look at
-    (http://reference.wolfram.com/mathematica/ref/ReliefPlot.html)
-    or Generic Mapping Tools (http://gmt.soest.hawaii.edu/)
-    
-    - Use inproduct to calculate angle between normal an light source.
+""" Compares the different methods of blending color
+    Shows that the matplotlib and pegtop implementation rely heavily on the intensity of the
+    color map and therefore give poor results when using a color map that has less 
+    variation in intensity, such as the rainbow plot.
 """
 from __future__ import print_function
 from __future__ import division
 
-import sys
 import matplotlib as mpl
 
 mpl.interactive(False) 
-if len(sys.argv) > 1 and sys.argv[1]=='--qt':
-    print("Force 'Qt4Agg' backend")
-    mpl.use('Qt4Agg')  
-    mpl.rcParams['backend.qt4'] = 'PySide'
-    
 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LightSource
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from mpl_toolkits.mplot3d import axes3d
 
-from hillshade import hill_shade, rgb_blending, hsv_blending, pegtop_blending, matplotlib_intensity
-from hillshade import DEF_AZIMUTH, DEF_ELEVATION, DEF_CMAP
-
-DEF_SCALE = 10.0
-#DEF_INTERP = 'nearest'
-DEF_INTERP = None # default interpolation
-
-
-def add_colorbar(fig, axes, cmap, norm=None):
-    """ Aux function that makes a color bar from the image and adds it to the figure
-    """
-    divider = make_axes_locatable(axes)    
-    colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
-    colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, orientation='vertical')
-    return colorbar
-
-
-def remove_ticks(axes):
-    """ Aux function that removes the ticks from the axes
-    """
-    axes.set_xticks([])
-    axes.set_yticks([])
-    
-    
-def plot_data(fig, axes, data, cmap=DEF_CMAP, interpolation=DEF_INTERP):
-    """ Draws an image of the data without shading
-    """
-    axes.imshow(data, cmap, interpolation=interpolation)
-    axes.set_title('Data without shading')
-    add_colorbar(fig, axes, cmap)
-    remove_ticks(axes)
-
-
-def plot_intensity(fig, axes, terrain, cmap=plt.cm.gist_gray, 
-                   azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE,
-                   interpolation=DEF_INTERP):
-    """ Shows only the shading component calculated from the matplotlib algorithm
-    """
-    intensity = matplotlib_intensity(terrain, azimuth=azimuth, elevation=elevation, 
-                                     scale_terrain = scale_terrain)
-    axes.set_title('Terrain intensity')
-    axes.imshow(intensity, cmap, interpolation=interpolation)
-    add_colorbar(fig, axes, cmap)
-    remove_ticks(axes)    
-
-
-def plot_mpl_hs(fig, axes, data, cmap=DEF_CMAP, 
-                azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
-                interpolation=DEF_INTERP):
-    """ Draws an image of the matplotlib hill shading implementation
-    """
-    ls = LightSource(azdeg=azimuth, altdeg=elevation)
-    rgb = ls.shade(data, cmap=cmap)
-    
-    norm = mpl.colors.Normalize(data)
-    
-    # Norm will not be used to normalize rgb in in the imshow() call but 
-    # is used to normalize the color bar. An alternative is to use ColorbarBase
-    # as is demonstrated in plot_pegtop_hs below
-    axes.imshow(rgb, cmap, norm=norm, interpolation=interpolation)
-    axes.set_title('Matplotlib hill shading')
-    add_colorbar(fig, axes, cmap)
-    remove_ticks(axes)
-
-
-def plot_pegtop_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP, 
-                   azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE,
-                   interpolation=DEF_INTERP):
-    """ Draws an image of hill shading with pegtop blending
-    """
-    rgb = hill_shade(data, terrain=terrain, 
-                     azimuth=azimuth, elevation=elevation, scale_terrain = scale_terrain, 
-                     cmap=cmap, blend_function=pegtop_blending)
-    
-    axes.imshow(rgb, interpolation=interpolation)
-
-    axes.set_title('Pegtop blending')
-    add_colorbar(fig, axes, cmap, norm=mpl.colors.Normalize(data))
-    remove_ticks(axes)
-
-
-def plot_rgb_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP, 
-                azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE, 
-                interpolation=DEF_INTERP):
-    """ Draws an image of hill shading with RGB blending
-    """
-    rgb = hill_shade(data, terrain=terrain,
-                     cmap=cmap, blend_function=rgb_blending, 
-                     azimuth=azimuth, elevation=elevation, scale_terrain = scale_terrain) 
-    
-    axes.set_title('RGB blending')
-    axes.imshow(rgb, interpolation=interpolation)
-    add_colorbar(fig, axes, cmap, norm=mpl.colors.Normalize(data))
-    remove_ticks(axes)  
-    
-
-def plot_hsv_hs(fig, axes, data, terrain=None, cmap=DEF_CMAP, 
-                azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, scale_terrain = DEF_SCALE, 
-                interpolation=DEF_INTERP):
-    """ Draws an image of hill shading with HSV blending
-    """
-    rgb = hill_shade(data, terrain=terrain,
-                     cmap=cmap, blend_function=hsv_blending, 
-                     azimuth=azimuth, elevation=elevation, scale_terrain = scale_terrain) 
-                         
-    axes.imshow(rgb, interpolation=interpolation)
-    axes.set_title('HSV blending')
-    add_colorbar(fig, axes, cmap, norm=mpl.colors.Normalize(data))
-    remove_ticks(axes)    
-
-
-def generate_concentric_circles():
-    x, y = np.mgrid[-5:5:0.05, -5:5:0.05] # 200 by 200
-    data = np.sqrt(x ** 2 + y ** 2) + np.sin(x ** 2 + y ** 2)
-    return data
-
-
-def generate_hills_with_noise():
-    _, _, data = axes3d.get_test_data(0.03)  # 200 by 200
-    noise = 5 * np.random.randn(*data.shape) # unpack shape
-    return -data + noise  
+from plotting import make_test_data
+from plotting import draw
+from intensity import matplotlib_intensity
+from hillshade import hill_shade, rgb_blending, hsv_blending, pegtop_blending 
+from hillshade import DEF_AZIMUTH, DEF_ELEVATION
 
 
 def main():
 
     if 1:
-        # Shows that the matplotlib and pegtop implementation rely heavily on the intensity of the
-        # color map and therefore give poor results when using a color map that has less 
-        # variation in intensity, such as the rainbow plot.
-        data = generate_concentric_circles()
-        terrain = generate_concentric_circles()
+        data = make_test_data('circles', noise_factor=0.05)
+        terrain = np.copy(data)
+        #terrain = make_test_data('circles')
         cmap = plt.cm.rainbow
+        cnorm = mpl.colors.Normalize(vmin=np.nanmin(data), vmax=np.nanmax(data)) # color normalize function
+        scale = 1
     else:
         # Shows that hsv-blending can give wrong results when combined wiht a color map that 
         # includes colors close to black or white (such as 'cubehelix'). Note the incorrect purple
         # spot where the data is close to zero.
         # The matploblib hill shading cannot have a different terrain and data so shows only data.
-        data    = generate_hills_with_noise()
-        terrain = generate_concentric_circles()
+        data = make_test_data('hills', noise_factor=5)
+        terrain = make_test_data('circles')
         cmap = plt.cm.cubehelix
+        cnorm = mpl.colors.Normalize()
+        scale = 10
         
     assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
-
     # Uncomment the line below to see Nans in the terrain
     #terrain[20:40, 30:50] = np.nan
 
-    fig, axes_list = plt.subplots(3, 2, figsize=(15, 10))
+    print("min data: {}".format(np.min(data)))
+    print("max data: {}".format(np.max(data)))
+
+    fig, ax = plt.subplots(3, 2, figsize=(15, 10))
+    fig.tight_layout()
     
-    scale = 10
-    plot_data     (fig, axes_list[0, 0], data, cmap=cmap)
-    plot_intensity(fig, axes_list[0, 1], terrain, scale_terrain = scale)
-    plot_mpl_hs   (fig, axes_list[1, 0], data, cmap=cmap)
-    plot_pegtop_hs(fig, axes_list[1, 1], data, terrain=terrain, scale_terrain = scale, cmap=cmap)
-    plot_rgb_hs   (fig, axes_list[2, 0], data, terrain=terrain, scale_terrain = scale, cmap=cmap)
-    plot_hsv_hs   (fig, axes_list[2, 1], data, terrain=terrain, scale_terrain = scale, cmap=cmap)
+    draw(ax[0, 0], cmap=cmap, title='No shading', 
+         image_data = data)
+
+    draw(ax[0, 1], cmap=plt.cm.gray, title='Matplotlib intensity', 
+         image_data = matplotlib_intensity(terrain, scale_terrain = scale))
+
+    ls = LightSource(azdeg=DEF_AZIMUTH, altdeg=DEF_ELEVATION)
+    draw(ax[1, 0], cmap=cmap, cnorm=cnorm, title='Matplotlib hill shading', 
+         image_data = ls.shade(data, cmap=cmap))
+    
+    draw(ax[1, 1], cmap=cmap, cnorm=cnorm, title='Pegtop blending', 
+         image_data = hill_shade(data, terrain=terrain, scale_terrain = scale, 
+                                 cmap=cmap, blend_function=pegtop_blending))
+    
+    draw(ax[2, 0], cmap=cmap, cnorm=cnorm, title='RGB blending', 
+         image_data = hill_shade(data, terrain=terrain, scale_terrain = scale, 
+                                 cmap=cmap, blend_function=rgb_blending))    
+    
+    draw(ax[2, 1], cmap=cmap, cnorm=cnorm, title='HSV blending', 
+         image_data = hill_shade(data, terrain=terrain, scale_terrain = scale, 
+                                 cmap=cmap, blend_function=hsv_blending))    
 
     plt.show()
 
 if __name__ == "__main__":
     main()
-    if mpl.is_interactive() and  mpl.get_backend() == 'MacOSX':
-        #raw_input('please press enter\n') # python 2
-        input('please press enter\n')
+
         
         
     

@@ -8,27 +8,26 @@ from __future__ import division
 import matplotlib.pyplot as plt
 plt.ioff() 
 
-from plotting import make_test_data
-from plotting import plot_no_shading, plot_mpl_intensity, plot_dot_intensity
+from plotting import make_test_data, plot_no_shading, plot_mpl_intensity, plot_dot_intensity
 
 def main():
 
     #terrain = make_test_data('circles', noise_factor=0.0)
     terrain = make_test_data('hills', noise_factor=0.1)
 
-    fig, axes_list = plt.subplots(2, 4, figsize=(20, 10))
+    fig, ax = plt.subplots(2, 4, figsize=(20, 10))
     fig.tight_layout()
+    
+    plot_no_shading(ax[0, 0], terrain, plt.cm.cubehelix)
+    ax[1, 0].set_axis_off()
     
     azimuths = [45, 90, 135]
     elev = 50
     
-    plot_no_shading(fig, axes_list[0, 0], terrain, plt.cm.cubehelix)
-    axes_list[1, 0].set_axis_off()
-    
     for idx, azim in enumerate(azimuths):
         col = idx + 1
-        plot_mpl_intensity(fig, axes_list[0, col], terrain, azim=azim, elev=elev, scale_terrain = 1)
-        plot_dot_intensity(fig, axes_list[1, col], terrain, azim=azim, elev=elev)
+        plot_mpl_intensity(ax[0, col], terrain, azim=azim, elev=elev, scale_terrain = 1)
+        plot_dot_intensity(ax[1, col], terrain, azim=azim, elev=elev)
 
     plt.show()
 

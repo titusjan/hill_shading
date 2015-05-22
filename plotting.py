@@ -34,7 +34,7 @@ def _generate_concentric_circles(size):
 def _generate_hills(size):
     "Generates noisy hills test data"
     _, _, data = axes3d.get_test_data(6.0 / size)  
-    return -data
+    return -0.1 * data # to make in about the same height as the circles
 
 
 def make_test_data(shape, noise_factor=0.0, size=200):
@@ -56,11 +56,18 @@ def make_test_data(shape, noise_factor=0.0, size=200):
 # Misc. #
 #########
 
-def add_colorbar(fig, axes, cmap, norm=None):
+def add_colorbar(axes, cmap, norm=None):
     """ Aux function that makes a color bar from the image and adds it to the figure
     """
+    assert cmap, "cmap undefined"
+    assert norm.scaled(), "Norm function must be scaled to prevent side effects"
+    #print("cnorm.vmin: {}".format(norm.vmin))
+    #print("cnorm.vmax: {}".format(norm.vmax))
+        
     divider = make_axes_locatable(axes)    
     colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
+    
+    # mpl.colorbar.ColorbarBase can have side effects on norm!
     colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, orientation='vertical')
     return colorbar
 
@@ -75,17 +82,38 @@ def remove_ticks(axes):
 # imshow functions #    
 ####################
 
+
+def draw(axes, image_data, title='', 
+         cmap=None, cnorm=None,  
+         interpolation=IMSHOW_INTERP
+         , ticks=False):
+    """ Makes an image plot. 
+        The image_data can be any array that can be plotted with the matplotlib imshow function.
+    """
+    print()
+    print("Drawing: {}".format(title))
+    print("  image_data.shape: {}".format(image_data.shape))
     
-def plot_no_shading(fig, axes, data, cmap=DEF_CMAP):
+    if cnorm is None:
+        cnorm = mpl.colors.Normalize(vmin=np.nanmin(image_data), vmax=np.nanmax(image_data))
+
+    axes.imshow(image_data, interpolation=interpolation, norm=cnorm, cmap=cmap)
+    axes.set_title(title)
+    add_colorbar(axes, cmap, norm=cnorm)
+    if not ticks:
+        remove_ticks(axes)    
+        
+    
+def plot_no_shading(axes, data, cmap=DEF_CMAP):
     """ Draws an image of the data without shading
     """
     axes.imshow(data, cmap, interpolation=IMSHOW_INTERP, origin=IMSHOW_ORIGIN)
     axes.set_title('Data without shading')
-    add_colorbar(fig, axes, cmap)
+    add_colorbar(axes, cmap)
     #remove_ticks(axes)
 
 
-def plot_mpl_intensity(fig, axes, terrain, cmap=plt.cm.gist_gray, 
+def plot_mpl_intensity(axes, terrain, cmap=plt.cm.gist_gray, 
                        azim=DEF_AZIMUTH, elev=DEF_ELEVATION, scale_terrain = DEF_SCALE):
     """ Shows the shading component calculated from the matplotlib algorithm
     """
@@ -94,11 +122,11 @@ def plot_mpl_intensity(fig, axes, terrain, cmap=plt.cm.gist_gray,
                                      scale_terrain = scale_terrain)
     axes.set_title('MPL (azim={}, elev={}) (scale={})'.format(azim, elev, scale_terrain))
     axes.imshow(intensity, cmap, interpolation=IMSHOW_INTERP, origin=IMSHOW_ORIGIN)
-    add_colorbar(fig, axes, cmap)
+    add_colorbar(axes, cmap)
     #remove_ticks(axes)    
 
 
-def plot_dot_intensity(fig, axes, terrain, cmap=plt.cm.gist_gray, 
+def plot_dot_intensity(axes, terrain, cmap=plt.cm.gist_gray, 
                            azim=DEF_AZIMUTH, elev=DEF_ELEVATION):
     """ Shows the shading component calculated from the dot product of the light source and the
         surface numbers.
@@ -106,6 +134,6 @@ def plot_dot_intensity(fig, axes, terrain, cmap=plt.cm.gist_gray,
     intensity = normalized_intensity(terrain, azimuth=azim, elevation=elev)
     axes.set_title('Dot (azim={}, elev={})'.format(azim, elev))
     axes.imshow(intensity, cmap, interpolation=IMSHOW_INTERP, origin=IMSHOW_ORIGIN)
-    add_colorbar(fig, axes, cmap)
+    add_colorbar(axes, cmap)
     #remove_ticks(axes)    
 

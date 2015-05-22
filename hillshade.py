@@ -47,6 +47,14 @@ def normalize(values, vmin=None, vmax=None):
     return norm_fn(values) 
     
 
+def color_data(data, cmap=DEF_CMAP, vmin=None, vmax=None):
+    """ Auxiliary function that colors the data.
+    """
+    norm_data = normalize(data, vmin, vmax)
+    rgba = cmap(norm_data)
+    return rgba
+
+
 def rgb_blending(rgba, norm_intensities):
     """ Calculates image colors by multiplying the rgb value with the normalized intensities
                 
@@ -69,8 +77,8 @@ def hsv_blending(rgba, norm_intensities):
     """ Calculates image colors by placing the normalized intensities in the Value layer of the
         HSV color of the normalized data.
         
-        IMPORTANT: may give incorrect results for color maps that include colors close to 
-            white and black (e.g. cubehelix or hot). 
+        IMPORTANT: may give incorrect results for color maps that include colors close to black 
+            (e.g. cubehelix or hot). 
                 
         :param rgba: [nrows, ncols, 3|4] RGB or RGBA array. The alpha layer will be ignored.
         :param norm_intensities: normalized intensities
@@ -121,20 +129,9 @@ def hill_shade(data, terrain=None,
 
     finite_terrain = replace_nans(terrain, terrain_nan_value)
     norm_intensities = diffuse_intensity(finite_terrain, scale_terrain=scale_terrain, 
-                                            azimuth=azimuth, elevation=elevation)
+                                         azimuth=azimuth, elevation=elevation)
     
-    return color_data(data, norm_intensities, 
-                      cmap=cmap, vmin=vmin, vmax=vmax, blend_function=blend_function)
-
-
-def color_data(data, norm_intensities, 
-               cmap=DEF_CMAP, vmin=None, vmax=None, blend_function=hsv_blending):
-    """ Auxiliary function that colors the data and blends the normalized intensities.
-        Use this if you want to calculate your own normalized intensities, otherwise use the 
-        hill_shade function, which is more high-level. See this function for the explanation of
-        the parameters.
-    """
-    norm_data = normalize(data, vmin, vmax)
-    rgba = cmap(norm_data)
+    rgba = color_data(data, cmap=cmap, vmin=vmin, vmax=vmax)
     return blend_function(rgba, norm_intensities)
+
 
