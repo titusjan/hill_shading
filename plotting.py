@@ -6,12 +6,11 @@ from __future__ import division
 
 import numpy as np
 import matplotlib as mpl
-import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 
-from intensity import matplotlib_intensity, combined_intensities
-from hillshade import DEF_AZIMUTH, DEF_ELEVATION, DEF_CMAP
+from intensity import matplotlib_intensity
+from hillshade import DEF_AZIMUTH, DEF_ELEVATION, DEF_CMAP, color_data, rgb_blending
 
 DEF_SCALE = 10.0
 #IMSHOW_INTERP = 'nearest'
@@ -52,9 +51,9 @@ def make_test_data(shape, noise_factor=0.0, size=200):
     noise = noise_factor * np.random.randn(*data.shape) # unpack shape
     return data + noise
 
-#########
-# Misc. #
-#########
+###########
+# drawing #
+###########
 
 def add_colorbar(axes, cmap, norm=None):
     """ Aux function that makes a color bar from the image and adds it to the figure
@@ -67,7 +66,7 @@ def add_colorbar(axes, cmap, norm=None):
     divider = make_axes_locatable(axes)    
     colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
     
-    # mpl.colorbar.ColorbarBase can have side effects on norm!
+    # mpl.colorbar.ColorbarBase can have side effects on norm if norm is auto scaling!
     colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, 
                                          orientation='vertical', extend='both')
     return colorbar
@@ -78,10 +77,6 @@ def remove_ticks(axes):
     """
     axes.set_xticks([])
     axes.set_yticks([])
-
-####################
-# imshow functions #    
-####################
 
 
 def draw(axes, image_data, title='', 
@@ -105,37 +100,27 @@ def draw(axes, image_data, title='',
     if not ticks:
         remove_ticks(axes)    
         
+
+########
+# misc #
+########
     
-def plot_no_shading(axes, data, cmap=DEF_CMAP):
-    """ Draws an image of the data without shading
+def mpl_hill_shade(data, terrain=None, 
+                   cmap=DEF_CMAP, vmin=None, vmax=None, norm=None, blend_function=rgb_blending,  
+                   azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
+    """ Hill shading that uses the matplotlib intensities. Is only for making comparison between
+        blending methods where we need to include the matplotlib hill shading. For all other
+        plots we can use the combined_intensities function that is used in the regular hill_shade()
+        
     """
-    axes.imshow(data, cmap, interpolation=IMSHOW_INTERP, origin=IMSHOW_ORIGIN)
-    axes.set_title('Data without shading')
-    add_colorbar(axes, cmap)
-    #remove_ticks(axes)
+    if terrain is None:
+        terrain = data
+    
+    assert data.ndim == 2, "data must be 2 dimensional"
+    assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
 
-
-def plot_mpl_intensity(axes, terrain, cmap=plt.cm.gist_gray, 
-                       azim=DEF_AZIMUTH, elev=DEF_ELEVATION, scale_terrain = DEF_SCALE):
-    """ Shows the shading component calculated from the matplotlib algorithm
-    """
-    intensity = matplotlib_intensity(terrain, fix_atan_bug=True,  
-                                     azimuth=azim, elevation=elev, 
-                                     scale_terrain = scale_terrain)
-    axes.set_title('MPL (azim={}, elev={}) (scale={})'.format(azim, elev, scale_terrain))
-    axes.imshow(intensity, cmap, interpolation=IMSHOW_INTERP, origin=IMSHOW_ORIGIN)
-    add_colorbar(axes, cmap)
-    #remove_ticks(axes)    
-
-
-def plot_dot_intensity(axes, terrain, cmap=plt.cm.gist_gray, 
-                           azim=DEF_AZIMUTH, elev=DEF_ELEVATION):
-    """ Shows the shading component calculated from the dot product of the light source and the
-        surface numbers.
-    """
-    intensity = combined_intensities(terrain, azimuth=azim, elevation=elev)
-    axes.set_title('Dot (azim={}, elev={})'.format(azim, elev))
-    axes.imshow(intensity, cmap, interpolation=IMSHOW_INTERP, origin=IMSHOW_ORIGIN)
-    add_colorbar(axes, cmap)
-    #remove_ticks(axes)    
+    norm_intensities = matplotlib_intensity(terrain, azimuth=azimuth, elevation=elevation)
+    
+    rgba = color_data(data, cmap=cmap, vmin=vmin, vmax=vmax, norm=norm)
+    return blend_function(rgba, norm_intensities)
 

@@ -40,12 +40,12 @@ def diffuse_intensity(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
                                    err_msg="sanity check: light vector should have length 1")
     
     intensity = np.dot(normals, light)
-    assert np.all(intensity <= 1.0), "sanity check: cosinus should be <= 1"
+    assert np.all(intensity >= -1.0), "sanity check: cosinus(omega) should be >= -1"
+    assert np.all(intensity <= 1.0), "sanity check: cosinus(omega) should be <= 1"
     
     # Where the dot product is smaller than 0 the angle between the light source and the surface
     # is larger than 90 degrees. These pixels receive no light so we clip the intensity to 0.
     intensity = np.clip(intensity, 0.0, 1.0)
-    assert np.all(intensity >= 0.0), "sanity check: cosinus should be >= 0"
     return intensity
     
     
@@ -71,22 +71,22 @@ def surface_unit_normals(terrain):
     return surface_normals / np.expand_dims(normal_magnitudes, axis=2)  
 
     
-def matplotlib_intensity(terrain, scale_terrain=10, fix_atan_bug=True, 
-                         azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
+def matplotlib_intensity(terrain, 
+                         azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
+                         azim0_is_east=False, normalize=False):
     """ Calculates the shade intensity from the terrain gradient and an artificial light source
     
-        Forked from Ran Novitsky's blog (but with inverted scale_terrain meaning), but the original
-        source is the LightSource.shade_rgb function of the matplotlib.colors module.
+        Forked from Ran Novitsky's blog (but without the scale terrain parameter).
+        The original source is the LightSource.shade_rgb function of the matplotlib.colors module.
         See:
             http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html
             https://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/colors.py
             
         input:
             terrain - a 2-d array of the terrain
-            scale_terrain - scaling value of the terrain. higher number = higher gradient
             azimuth - where the light comes from: 0 south ; 90 east ; 180 north ;
                         270 west
-            elevation - where the light comes from: 0 horiaon ; 90 zenith
+            elevation - where the light comes from: 0 horiazon ; 90 zenith
             
         output: 
             a 2-d array of normalized hillshade
@@ -96,17 +96,29 @@ def matplotlib_intensity(terrain, scale_terrain=10, fix_atan_bug=True,
     alt = elevation * pi / 180.0
     
     # gradient in x and y directions
-    dx, dy = gradient(terrain * scale_terrain)
+    dx, dy = gradient(terrain)
     
     slope = 0.5 * pi - arctan(hypot(dx, dy))
-    if fix_atan_bug:
+    if azim0_is_east:
+        # The arctan docs specify that the parameters are (y, x), in that order.
+        # This makes an azimuth of 0 correspond to east. 
         aspect = arctan2(dy, dx)
     else:
         aspect = arctan2(dx, dy)
     intensity = sin(alt) * sin(slope) + cos(alt) * cos(slope) * cos(-az - aspect - 0.5 * pi)
+
+    assert np.all(intensity >= -1.0), "sanity check: cosinus(omega) should be >= -1"
+    assert np.all(intensity <= 1.0), "sanity check: cosinus(omega) should be <= 1"
+
+    # The matplotlib source just normalizes the intensities. However, I believe that their 
+    # intensities are the same as mine so that, where they are < 0 the angle between the light 
+    # source and the surface is larger than 90 degrees. These pixels receive no light so 
+    # they should be clipped. This is done when the normalize parameter is set to False.
     
-    # Normalize intenstity
-    intensity = (intensity - intensity.min()) / (intensity.max() - intensity.min())
+    if normalize:
+        intensity = (intensity - intensity.min()) / (intensity.max() - intensity.min())
+    else:
+        intensity = np.clip(intensity, 0.0, 1.0)
         
     return intensity
 
