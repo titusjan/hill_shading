@@ -129,8 +129,7 @@ def pegtop_blending(rgba, norm_intensities):
     
 def hill_shade(data, terrain=None, 
                cmap=DEF_CMAP, vmin=None, vmax=None, norm=None, blend_function=rgb_blending,  
-               azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
-               scale_terrain=1):
+               azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
     """ Calculates hill shading by putting the intensity in the Value layer of the HSV space.
     """
     if terrain is None:
@@ -139,7 +138,6 @@ def hill_shade(data, terrain=None,
     assert data.ndim == 2, "data must be 2 dimensional"
     assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
 
-    terrain = terrain * scale_terrain
     diff_int = diffuse_intensity(terrain, azimuth=azimuth, elevation=elevation)
     
     rgba = color_data(data, cmap=cmap, vmin=vmin, vmax=vmax, norm=norm)
