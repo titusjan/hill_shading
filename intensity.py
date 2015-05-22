@@ -26,9 +26,7 @@ from __future__ import print_function
 from __future__ import division
 
 import numpy as np
-from numpy import pi, cos, sin, gradient, arctan, hypot, arctan2
 
-#DEF_AZIMUTH = 165   # degrees
 DEF_AZIMUTH = 135   # degrees
 DEF_ELEVATION = 45  # degrees
 
@@ -49,8 +47,8 @@ def relative_surface_intensity(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVA
                                    err_msg="sanity check: light vector should have length 1")
     
     intensity = np.dot(normals, light)
-    assert np.all(intensity >= -1.0), "sanity check: cosinus(theta) should be >= -1"
-    assert np.all(intensity <= 1.0), "sanity check: cosinus(theta) should be <= 1"
+    assert np.all(intensity >= -1.0), "sanity check: cos(theta) should be >= -1"
+    assert np.all(intensity <= 1.0), "sanity check: cos(theta) should be <= 1"
     
     # Where the dot product is smaller than 0 the angle between the light source and the surface
     # is larger than 90 degrees. These pixels receive no light so we clip the intensity to 0.
@@ -93,12 +91,12 @@ def polar_to_cart3d(azimuth, elevation):
 
     
 def mpl_surface_intensity(terrain, 
-                         azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
-                         azim0_is_east=False, normalize=False):
+                          azimuth=165, elevation=DEF_ELEVATION, 
+                          azim0_is_east=False, normalize=False):
     """ Calculates the intensity that falls on the surface when illuminated with intensity 1 
         
         This is the implementation as is used in matplotlib.
-        Forked from Ran Novitsky's blog (but without the scale terrain parameter).
+        Forked from Ran Novitsky's blog (no license found).
         The original source is the LightSource.shade_rgb function of the matplotlib.colors module.
         See:
             http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html
@@ -113,6 +111,8 @@ def mpl_surface_intensity(terrain,
         output: 
             a 2-d array of normalized hillshade
     """
+    from numpy import pi, cos, sin, gradient, arctan, hypot, arctan2
+    
     # Convert alt, az to radians
     az = azimuth * pi / 180.0
     alt = elevation * pi / 180.0
@@ -129,8 +129,8 @@ def mpl_surface_intensity(terrain,
         aspect = arctan2(dx, dy)
     intensity = sin(alt) * sin(slope) + cos(alt) * cos(slope) * cos(-az - aspect - 0.5 * pi)
 
-    assert np.all(intensity >= -1.0), "sanity check: cosinus(theta) should be >= -1"
-    assert np.all(intensity <= 1.0), "sanity check: cosinus(theta) should be <= 1"
+    assert np.all(intensity >= -1.0), "sanity check: cos(theta) should be >= -1"
+    assert np.all(intensity <= 1.0), "sanity check: cos(theta) should be <= 1"
 
     # The matplotlib source just normalizes the intensities. However, I believe that their 
     # intensities are the same as mine so that, where they are < 0 the angle between the light 

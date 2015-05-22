@@ -39,13 +39,12 @@ def main():
         dmax = 10
         print ("clip legend at ({}, {})".format(dmin, dmax))
         dnorm = mpl.colors.Normalize(vmin=dmin, vmax=dmax)
-
         
     # Don't auto scale the intensities, it gives the wrong impression
     inorm = mpl.colors.Normalize(vmin=0.0, vmax=1.0)
             
     azimuth = DEF_AZIMUTH 
-    elevation = 45
+    elevation = DEF_ELEVATION
 
     draw(ax[0, 0], cmap=plt.cm.gist_earth, title='Terrain height', 
          image_data = terrain)

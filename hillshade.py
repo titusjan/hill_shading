@@ -155,8 +155,24 @@ def pegtop_blending(rgba, norm_intensities):
     return 2 * d * rgb + (rgb ** 2) * (1 - 2 * d)
     
     
+def assert_same_length(s0, s1, label0, label1):
+    """ Asserts list s1 and s2 have the same lengths
+    """
+    if len(s0) != len(s1):
+        raise AssertionError("size mismatch between {} (len={}) and {} (len={})"
+                             .format(label0, s0, label1, s1))
+           
+def enforce_list(var):
+    """ Runs the list() constructor on the var parameter.
+    """
+    try:
+        return list(var) # iterable
+    except TypeError:
+        return [var]
+    
+    
 def hill_shade(data, terrain=None, 
-               lamp_weight=1, ambient_weight=0.15,  
+               ambient_weight=0.15, lamp_weight=1, 
                cmap=DEF_CMAP, vmin=None, vmax=None, norm=None, blend_function=rgb_blending,  
                azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
     """ Calculates hill shading.
@@ -167,14 +183,25 @@ def hill_shade(data, terrain=None,
     assert data.ndim == 2, "data must be 2 dimensional"
     assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
     
-    relative_intensity = relative_surface_intensity(terrain, azimuth=azimuth, elevation=elevation)
+    # Calculates relative surface intensity for all lamps
+    azimuths = enforce_list(azimuth)
+    elevations = enforce_list(elevation)
+    lamp_weights = enforce_list(lamp_weight)
+    assert_same_length(azimuths, elevations, 'azimuths', 'elevations')
+    assert_same_length(azimuths, lamp_weights, 'azimuths', 'lamp_weights')
+   
+    rel_intensities = [np.ones_like(terrain)]
+    weights = [ambient_weight] 
+    for azim, elev, lmpw in zip(azimuths, elevations, lamp_weights):
+        rel_int = relative_surface_intensity(terrain, azimuth=azim, elevation=elev)
+        rel_intensities.append(rel_int)
+        weights.append(lmpw)
     
-    ambient_intensity = np.ones_like(relative_intensity)
-    intensities = np.dstack((relative_intensity, ambient_intensity))
+    rel_intensities = np.dstack(rel_intensities)
+    weights = np.array(weights)
     
-    weights = np.array([lamp_weight, ambient_weight])
     unit_weights = weights / np.sum(weights)
-    surface_intensity = np.average(intensities, axis=2, weights=unit_weights)
+    surface_intensity = np.average(rel_intensities, axis=2, weights=unit_weights)
         
     rgba = color_data(data, cmap=cmap, vmin=vmin, vmax=vmax, norm=norm)
     return blend_function(rgba, surface_intensity)
