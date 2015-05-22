@@ -33,19 +33,6 @@ DEF_AZIMUTH = 135   # degrees
 DEF_ELEVATION = 45  # degrees
 
 
-def polar_to_cart3d(azimuth, elevation):
-    """ Converts the polar (azimuth, elevation) unit vector to (height, row, col) coordinates.
-    """  
-    azimuth_rad = azimuth * np.pi / 180.0
-    elevation_rad = elevation * np.pi / 180.0
-    
-    height = np.sin(elevation_rad)
-    row    = np.cos(elevation_rad) * np.sin(azimuth_rad)
-    col    = np.cos(elevation_rad) * np.cos(azimuth_rad)
-    
-    return np.array([height, row, col])
-
-
 def relative_surface_intensity(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
     """ Calculates the intensity that falls on the surface for light of intensity 1. 
         This equals cosine(theta) where theta is the angle between the direction of the light 
@@ -90,6 +77,19 @@ def surface_unit_normals(terrain):
     # (Add artificial dimension of length 1 so that we can use broadcasting)
     normal_magnitudes = np.linalg.norm(surface_normals, axis=2)
     return surface_normals / np.expand_dims(normal_magnitudes, axis=2)  
+
+
+def polar_to_cart3d(azimuth, elevation):
+    """ Converts the polar (azimuth, elevation) unit vector to (height, row, col) coordinates.
+    """  
+    azimuth_rad = azimuth * np.pi / 180.0
+    elevation_rad = elevation * np.pi / 180.0
+    
+    height = np.sin(elevation_rad)
+    row    = np.cos(elevation_rad) * np.sin(azimuth_rad)
+    col    = np.cos(elevation_rad) * np.cos(azimuth_rad)
+    
+    return np.array([height, row, col])
 
     
 def mpl_surface_intensity(terrain, 
