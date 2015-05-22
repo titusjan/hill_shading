@@ -66,6 +66,13 @@ def color_data(data, cmap, vmin=None, vmax=None, norm=None):
     return rgba
 
 
+def no_blending(rgba, norm_intensities):
+    """ Just returns the intensities. Use in hill_shade to just view the calculated intensities
+    """
+    assert norm_intensities.ndim == 2, "norm_intensities must be 2 dimensional"
+    return norm_intensities
+
+
 def rgb_blending(rgba, norm_intensities):
     """ Calculates image colors by multiplying the rgb value with the normalized intensities
                 
@@ -128,19 +135,27 @@ def pegtop_blending(rgba, norm_intensities):
     
     
 def hill_shade(data, terrain=None, 
+               lamp_weight=1, ambient_weight=0.15,  
                cmap=DEF_CMAP, vmin=None, vmax=None, norm=None, blend_function=rgb_blending,  
                azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
-    """ Calculates hill shading by putting the intensity in the Value layer of the HSV space.
+    """ Calculates hill shading.
     """
     if terrain is None:
         terrain = data
     
     assert data.ndim == 2, "data must be 2 dimensional"
     assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
-
-    diff_int = relative_surface_intensity(terrain, azimuth=azimuth, elevation=elevation)
     
+    relative_intensity = relative_surface_intensity(terrain, azimuth=azimuth, elevation=elevation)
+    
+    ambient_intensity = np.ones_like(relative_intensity)
+    intensities = np.dstack((relative_intensity, ambient_intensity))
+    
+    weights = np.array([lamp_weight, ambient_weight])
+    unit_weights = weights / np.sum(weights)
+    surface_intensity = np.average(intensities, axis=2, weights=unit_weights)
+        
     rgba = color_data(data, cmap=cmap, vmin=vmin, vmax=vmax, norm=norm)
-    return blend_function(rgba, diff_int)
+    return blend_function(rgba, surface_intensity)
 
 

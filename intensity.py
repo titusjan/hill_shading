@@ -23,13 +23,7 @@ def polar_to_cart3d(azimuth, elevation):
     col    = np.cos(elevation_rad) * np.cos(azimuth_rad)
     
     return np.array([height, row, col])
-    
 
-def combined_intensities(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
-    
-    return relative_surface_intensity(terrain, azimuth=azimuth, elevation=elevation)
-    
-    
 
 def relative_surface_intensity(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
     """ Calculates the intensity that falls on the surface for light of intensity 1. 
@@ -38,6 +32,8 @@ def relative_surface_intensity(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVA
         In that case the surface receives no light so we clip to 0. The result of this function is 
         therefore always between 0 and 1.
     """
+    # cosine(theta) is the dot-product of the normal vector and the vector that contains the  
+    # direction of the light source. Both vectors must be unit vectors (have length 1).
     normals = surface_unit_normals(terrain)
     light = polar_to_cart3d(azimuth, elevation)
     
@@ -54,21 +50,20 @@ def relative_surface_intensity(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVA
     return intensity
     
     
-    
 def surface_unit_normals(terrain):
     """ Returns an array of shape (n_rows, n_cols, 3) with unit surface normals. 
         That is, each result[r,c,:] contains the vector of length 1, perpendicular to the surface.
     """ 
     dr, dc = np.gradient(terrain)
     
-    # Vectors that do a step of 1 in the row direction, 0 in the column and dr upwards
-    vr = np.dstack((dr, np.ones_like(dr), np.zeros_like(dr)))
+    # Vectors that do a step of 1 in the row direction, 0 in the column direction and dr upwards
+    vr = np.dstack((dr, np.ones_like(dr), np.zeros_like(dr)))   # shape = (n_rows, n_cols, 3)
     
-    # Vectors that do a step of 0 in the row direction, 1 in the column and dc upwards
-    vc = np.dstack((dc, np.zeros_like(dc), np.ones_like(dc)))
+    # Vectors that do a step of 0 in the row direction, 1 in the column direction and dc upwards
+    vc = np.dstack((dc, np.zeros_like(dc), np.ones_like(dc)))   # shape = (n_rows, n_cols, 3)
 
     # The surface normals can be calculated as the cross product of those vector pairs
-    surface_normals = np.cross(vr, vc)  # surface_normals.shape = (200, 200, 3)
+    surface_normals = np.cross(vr, vc)  # surface_normals.shape = (n_rows, n_cols, 3)
     
     # Divide the normals by their magnitude to get unit vectors. 
     # (Add artificial dimension of length 1 so that we can use broadcasting)
@@ -92,7 +87,7 @@ def mpl_surface_intensity(terrain,
             terrain - a 2-d array of the terrain
             azimuth - where the light comes from: 0 south ; 90 east ; 180 north ;
                         270 west
-            elevation - where the light comes from: 0 horiazon ; 90 zenith
+            elevation - where the light comes from: 0 horizon ; 90 zenith
             
         output: 
             a 2-d array of normalized hillshade

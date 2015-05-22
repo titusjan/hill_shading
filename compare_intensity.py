@@ -10,7 +10,7 @@ plt.ioff()
 import matplotlib as mpl
 from plotting import make_test_data, draw
 from hillshade import INTENSITY_CMAP
-from intensity import mpl_surface_intensity, combined_intensities
+from intensity import mpl_surface_intensity, relative_surface_intensity
 
 
 def main():
@@ -59,7 +59,7 @@ def main():
         
         draw(ax[2, col], cmap=cmap, norm=inorm, 
              title="Diffuse (azim = {}, elev = {})".format(azim, elev), 
-             image_data = combined_intensities(terrain, azimuth=azim, elevation=elev))
+             image_data = relative_surface_intensity(terrain, azimuth=azim, elevation=elev))
 
     plt.show()
 

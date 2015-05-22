@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 
 from plotting import make_test_data
 from plotting import draw
-from hillshade import hill_shade, INTENSITY_CMAP
-from intensity import combined_intensities, DEF_AZIMUTH, DEF_ELEVATION
+from hillshade import hill_shade, no_blending, INTENSITY_CMAP
+from intensity import DEF_AZIMUTH, DEF_ELEVATION
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
     fig.tight_layout()
 
     data = make_test_data('circles')
-    terrain = 5 * make_test_data('hills', noise_factor=0.05)
+    terrain = 10 * make_test_data('hills', noise_factor=0.05)
     assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
     print("min data: {}".format(np.min(data)))
     print("max data: {}".format(np.max(data)))
@@ -45,14 +45,15 @@ def main():
     inorm = mpl.colors.Normalize(vmin=0.0, vmax=1.0)
             
     azimuth = DEF_AZIMUTH 
-    elevation = DEF_ELEVATION
+    elevation = 45
 
     draw(ax[0, 0], cmap=plt.cm.gist_earth, title='Terrain height', 
          image_data = terrain)
 
     draw(ax[0, 1], cmap=INTENSITY_CMAP, norm=inorm, 
          title='Shaded terrain (azim = {}, elev = {})'.format(azimuth, elevation), 
-         image_data = combined_intensities(terrain, azimuth=azimuth, elevation=elevation))
+         image_data = hill_shade(terrain, blend_function=no_blending, 
+                                 azimuth=azimuth, elevation=elevation)) 
 
     draw(ax[1, 0], cmap=cmap, norm=dnorm, title='Surface properties', 
          image_data = data)
