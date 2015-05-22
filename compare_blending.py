@@ -58,18 +58,18 @@ def main():
          image_data = matplotlib_intensity(terrain, scale_terrain = scale))
 
     ls = LightSource(azdeg=DEF_AZIMUTH, altdeg=DEF_ELEVATION)
-    draw(ax[1, 0], cmap=cmap, cnorm=cnorm, title='Matplotlib hill shading', 
+    draw(ax[1, 0], cmap=cmap, norm=cnorm, title='Matplotlib hill shading', 
          image_data = ls.shade(data, cmap=cmap))
     
-    draw(ax[1, 1], cmap=cmap, cnorm=cnorm, title='Pegtop blending', 
+    draw(ax[1, 1], cmap=cmap, norm=cnorm, title='Pegtop blending', 
          image_data = hill_shade(data, terrain=terrain, scale_terrain = scale, 
                                  cmap=cmap, blend_function=pegtop_blending))
     
-    draw(ax[2, 0], cmap=cmap, cnorm=cnorm, title='RGB blending', 
+    draw(ax[2, 0], cmap=cmap, norm=cnorm, title='RGB blending', 
          image_data = hill_shade(data, terrain=terrain, scale_terrain = scale, 
                                  cmap=cmap, blend_function=rgb_blending))    
     
-    draw(ax[2, 1], cmap=cmap, cnorm=cnorm, title='HSV blending', 
+    draw(ax[2, 1], cmap=cmap, norm=cnorm, title='HSV blending', 
          image_data = hill_shade(data, terrain=terrain, scale_terrain = scale, 
                                  cmap=cmap, blend_function=hsv_blending))    
 

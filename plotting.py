@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 
-from intensity import matplotlib_intensity, normalized_intensity
+from intensity import matplotlib_intensity, combined_intensities
 from hillshade import DEF_AZIMUTH, DEF_ELEVATION, DEF_CMAP
 
 DEF_SCALE = 10.0
@@ -68,7 +68,8 @@ def add_colorbar(axes, cmap, norm=None):
     colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
     
     # mpl.colorbar.ColorbarBase can have side effects on norm!
-    colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, orientation='vertical')
+    colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, 
+                                         orientation='vertical', extend='both')
     return colorbar
 
 
@@ -84,9 +85,10 @@ def remove_ticks(axes):
 
 
 def draw(axes, image_data, title='', 
-         cmap=None, cnorm=None,  
-         interpolation=IMSHOW_INTERP
-         , ticks=False):
+         cmap=None, norm=None,  
+         interpolation=IMSHOW_INTERP,
+         origin=IMSHOW_ORIGIN,  
+         ticks=True):
     """ Makes an image plot. 
         The image_data can be any array that can be plotted with the matplotlib imshow function.
     """
@@ -94,12 +96,12 @@ def draw(axes, image_data, title='',
     print("Drawing: {}".format(title))
     print("  image_data.shape: {}".format(image_data.shape))
     
-    if cnorm is None:
-        cnorm = mpl.colors.Normalize(vmin=np.nanmin(image_data), vmax=np.nanmax(image_data))
+    if norm is None:
+        norm = mpl.colors.Normalize(vmin=np.nanmin(image_data), vmax=np.nanmax(image_data))
 
-    axes.imshow(image_data, interpolation=interpolation, norm=cnorm, cmap=cmap)
+    axes.imshow(image_data, interpolation=interpolation, norm=norm, cmap=cmap, origin=origin)
     axes.set_title(title)
-    add_colorbar(axes, cmap, norm=cnorm)
+    add_colorbar(axes, cmap, norm=norm)
     if not ticks:
         remove_ticks(axes)    
         
@@ -131,7 +133,7 @@ def plot_dot_intensity(axes, terrain, cmap=plt.cm.gist_gray,
     """ Shows the shading component calculated from the dot product of the light source and the
         surface numbers.
     """
-    intensity = normalized_intensity(terrain, azimuth=azim, elevation=elev)
+    intensity = combined_intensities(terrain, azimuth=azim, elevation=elev)
     axes.set_title('Dot (azim={}, elev={})'.format(azim, elev))
     axes.imshow(intensity, cmap, interpolation=IMSHOW_INTERP, origin=IMSHOW_ORIGIN)
     add_colorbar(axes, cmap)

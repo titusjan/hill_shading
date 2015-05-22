@@ -7,9 +7,9 @@ from __future__ import division
 import numpy as np
 from numpy import pi, cos, sin, gradient, arctan, hypot, arctan2
 
-DEF_AZIMUTH = 165   # degrees
+#DEF_AZIMUTH = 165   # degrees
+DEF_AZIMUTH = 135   # degrees
 DEF_ELEVATION = 45  # degrees
-
 
 
 def polar_to_cart3d(azimuth, elevation):
@@ -25,16 +25,13 @@ def polar_to_cart3d(azimuth, elevation):
     return np.array([height, row, col])
     
 
-def normalized_intensity(terrain, scale_terrain=10, 
-                         azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
+def combined_intensities(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
     
-    return diffuse_intensity(terrain, scale_terrain=scale_terrain, 
-                             azimuth=azimuth, elevation=elevation)
+    return diffuse_intensity(terrain, azimuth=azimuth, elevation=elevation)
     
     
 
-def diffuse_intensity(terrain, scale_terrain=10, 
-                      azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
+def diffuse_intensity(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
     
     normals = surface_unit_normals(terrain)
     light = polar_to_cart3d(azimuth, elevation)
@@ -43,6 +40,12 @@ def diffuse_intensity(terrain, scale_terrain=10,
                                    err_msg="sanity check: light vector should have length 1")
     
     intensity = np.dot(normals, light)
+    assert np.all(intensity <= 1.0), "sanity check: cosinus should be <= 1"
+    
+    # Where the dot product is smaller than 0 the angle between the light source and the surface
+    # is larger than 90 degrees. These pixels receive no light so we clip the intensity to 0.
+    intensity = np.clip(intensity, 0.0, 1.0)
+    assert np.all(intensity >= 0.0), "sanity check: cosinus should be >= 0"
     return intensity
     
     
@@ -68,7 +71,7 @@ def surface_unit_normals(terrain):
     return surface_normals / np.expand_dims(normal_magnitudes, axis=2)  
 
     
-def matplotlib_intensity(terrain, scale_terrain=10, fix_atan_bug=False, 
+def matplotlib_intensity(terrain, scale_terrain=10, fix_atan_bug=True, 
                          azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
     """ Calculates the shade intensity from the terrain gradient and an artificial light source
     

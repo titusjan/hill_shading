@@ -14,4 +14,8 @@ Matplotlib hill shading:
 Pegtop shading:
     http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html
 
+TODO:
+	Make it work with NaNs and Masked arrays. It currently does not work with Nans since the
+	blending works based on RBG values where the 'is_bad' color will just be blended.
+
 2015-05-22, Pepijn Kenter.

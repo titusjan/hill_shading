@@ -10,7 +10,7 @@ import numpy as np
 from intensity import  diffuse_intensity
 from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
 
-DEF_AZIMUTH = 165   # degrees
+DEF_AZIMUTH = 135   # degrees
 DEF_ELEVATION = 45  # degrees
 
 
@@ -20,37 +20,49 @@ DEF_ELEVATION = 45  # degrees
 # For choosing a good color map see:
 #    http://matplotlib.org/users/colormaps.html 
 
-#DEF_CMAP = plt.cm.cool
-#DEF_CMAP = plt.cm.cubehelix # doesn't work well with HSV blending
-#DEF_CMAP = plt.cm.hot       # doesn't work well with HSV blending
-#DEF_CMAP = plt.cm.bwr
-#DEF_CMAP = plt.cm.gist_earth
-DEF_CMAP = plt.cm.gist_earth
+INTENSITY_CMAP = plt.cm.get_cmap('gray')
+INTENSITY_CMAP.set_bad('red')
+INTENSITY_CMAP.set_over('blue')
+INTENSITY_CMAP.set_under('yellow')
+
+#DEF_CMAP = plt.cm.get_cmap('cool')
+#DEF_CMAP = plt.cm.get_cmap('cubehelix')  # doesn't work well with HSV blending
+#DEF_CMAP = plt.cm.get_cmap('hot')        # doesn't work well with HSV blending
+DEF_CMAP = plt.cm.get_cmap('gist_earth')
     
     
-def replace_nans(array, array_nan_value):
+def is_non_finite_mask(array):
+    "Returns mask with ones where the data is infite or Nan"
+    np.logical_not(np.isfinite(array))
+    
+    
+def replace_nans(array, array_nan_value, mask=None):
     """ Returns a copy of the array with the NaNs replaced by nan_value
     """
     finite_array = np.copy(array)
-    is_non_finite = np.logical_not(np.isfinite(array)) # TODO: use mask?
-    if np.any(is_non_finite):
-        finite_array[is_non_finite] = array_nan_value
+    if mask is None:
+        mask =  is_non_finite_mask(array)
+    if np.any(mask):
+        finite_array[mask] = array_nan_value
     return finite_array
     
     
-def normalize(values, vmin=None, vmax=None):
-    """ Normalize values between 0 and 1.
-        values below vmin will be set to 0, values above vmax to 1.
-        If vmin and vmax are None, they are determined from the data (i.e. auto-scaling)
+def normalize(values, vmin=None, vmax=None, norm=None):
+    """ Normalize values between using a mpl.colors.Normalize object or (vmin, vmax) interval.
+        If norm is specified, vmin and vmax are ignored.
+        If norm is None and vmin and vmax are None, the values are autoscaled.
     """
-    norm_fn = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
-    return norm_fn(values) 
+    assert norm, "temp"
+    if norm is None:
+        norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+        
+    return norm(values) 
     
 
-def color_data(data, cmap=DEF_CMAP, vmin=None, vmax=None):
+def color_data(data, cmap, vmin=None, vmax=None, norm=None):
     """ Auxiliary function that colors the data.
     """
-    norm_data = normalize(data, vmin, vmax)
+    norm_data = normalize(data, vmin=vmin, vmax=vmax, norm=norm)
     rgba = cmap(norm_data)
     return rgba
 
@@ -70,6 +82,7 @@ def rgb_blending(rgba, norm_intensities):
     # multiplied with the rgb array using numpy broad casting
     expanded_intensities = np.expand_dims(norm_intensities, axis=2) 
     rgb = rgba[:, :, :3]
+    
     return rgb * expanded_intensities
         
 
@@ -116,9 +129,9 @@ def pegtop_blending(rgba, norm_intensities):
     
     
 def hill_shade(data, terrain=None, 
-               cmap=DEF_CMAP, vmin=None, vmax=None, blend_function=rgb_blending,  
+               cmap=DEF_CMAP, vmin=None, vmax=None, norm=None, blend_function=rgb_blending,  
                azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
-               scale_terrain=0.1, terrain_nan_value=0):
+               scale_terrain=1, terrain_nan_value=0):
     """ Calculates hill shading by putting the intensity in the Value layer of the HSV space.
     """
     if terrain is None:
@@ -127,11 +140,10 @@ def hill_shade(data, terrain=None,
     assert data.ndim == 2, "data must be 2 dimensional"
     assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
 
-    finite_terrain = replace_nans(terrain, terrain_nan_value)
-    norm_intensities = diffuse_intensity(finite_terrain, scale_terrain=scale_terrain, 
-                                         azimuth=azimuth, elevation=elevation)
+    finite_terrain = replace_nans(terrain, terrain_nan_value) * scale_terrain
+    norm_intensities = diffuse_intensity(finite_terrain, azimuth=azimuth, elevation=elevation)
     
-    rgba = color_data(data, cmap=cmap, vmin=vmin, vmax=vmax)
+    rgba = color_data(data, cmap=cmap, vmin=vmin, vmax=vmax, norm=norm)
     return blend_function(rgba, norm_intensities)
 
 
