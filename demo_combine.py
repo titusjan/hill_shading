@@ -6,28 +6,32 @@ from __future__ import division
 import matplotlib as mpl
 
 mpl.interactive(False) 
-
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
 from plotting import make_test_data
 from plotting import draw
-from hillshade import hill_shade
+from hillshade import hill_shade, INTENSITY_CMAP
 from intensity import combined_intensities, DEF_AZIMUTH, DEF_ELEVATION
 
 
 def main():
+    fig, ax = plt.subplots(2, 2, figsize=(10, 10))
+    fig.tight_layout()
 
     data = make_test_data('circles')
     terrain = 5 * make_test_data('hills', noise_factor=0.05)
     assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
-    
+    print("min data: {}".format(np.min(data)))
+    print("max data: {}".format(np.max(data)))
+
     cmap = plt.cm.get_cmap('bwr')
     cmap.set_bad('yellow')
-    cmap.set_over('magenta')
-    cmap.set_under('cyan')
+    cmap.set_over('cyan')
+    cmap.set_under('magenta')
          
-    if False: #or ['--autoscale'] in sys.argv:
+    if ['--autoscale'] in sys.argv:
         print ("Auto scale legend")
         dnorm = mpl.colors.Normalize(vmin=np.nanmin(data), vmax=np.nanmax(data))
     else:
@@ -41,18 +45,11 @@ def main():
             
     azimuth = DEF_AZIMUTH 
     elevation = DEF_ELEVATION
-    #elevation = 50
-        
-    print("min data: {}".format(np.min(data)))
-    print("max data: {}".format(np.max(data)))
 
-    fig, ax = plt.subplots(2, 2, figsize=(10, 10))
-    fig.tight_layout()
-    
     draw(ax[0, 0], cmap=plt.cm.gist_earth, title='Terrain height', 
          image_data = terrain)
 
-    draw(ax[0, 1], cmap=plt.cm.gray, norm=inorm, 
+    draw(ax[0, 1], cmap=INTENSITY_CMAP, norm=inorm, 
          title='Shaded terrain (azim = {}, elev = {})'.format(azimuth, elevation), 
          image_data = combined_intensities(terrain, azimuth=azimuth, elevation=elevation))
 
