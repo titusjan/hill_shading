@@ -33,12 +33,13 @@ def main():
          
     if ['--autoscale'] in sys.argv:
         print ("Auto scale legend")
-        dnorm = mpl.colors.Normalize(vmin=np.nanmin(data), vmax=np.nanmax(data))
+        dnorm = mpl.colors.Normalize()
     else:
         dmin = 0
         dmax = 10
         print ("clip legend at ({}, {})".format(dmin, dmax))
         dnorm = mpl.colors.Normalize(vmin=dmin, vmax=dmax)
+
         
     # Don't auto scale the intensities, it gives the wrong impression
     inorm = mpl.colors.Normalize(vmin=0.0, vmax=1.0)
