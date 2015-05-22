@@ -52,7 +52,6 @@ def normalize(values, vmin=None, vmax=None, norm=None):
         If norm is specified, vmin and vmax are ignored.
         If norm is None and vmin and vmax are None, the values are autoscaled.
     """
-    assert norm, "temp"
     if norm is None:
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
         
@@ -131,7 +130,7 @@ def pegtop_blending(rgba, norm_intensities):
 def hill_shade(data, terrain=None, 
                cmap=DEF_CMAP, vmin=None, vmax=None, norm=None, blend_function=rgb_blending,  
                azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
-               scale_terrain=1, terrain_nan_value=0):
+               scale_terrain=1):
     """ Calculates hill shading by putting the intensity in the Value layer of the HSV space.
     """
     if terrain is None:
@@ -140,10 +139,10 @@ def hill_shade(data, terrain=None,
     assert data.ndim == 2, "data must be 2 dimensional"
     assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
 
-    finite_terrain = replace_nans(terrain, terrain_nan_value) * scale_terrain
-    norm_intensities = diffuse_intensity(finite_terrain, azimuth=azimuth, elevation=elevation)
+    terrain = terrain * scale_terrain
+    diff_int = diffuse_intensity(terrain, azimuth=azimuth, elevation=elevation)
     
     rgba = color_data(data, cmap=cmap, vmin=vmin, vmax=vmax, norm=norm)
-    return blend_function(rgba, norm_intensities)
+    return blend_function(rgba, diff_int)
 
 
