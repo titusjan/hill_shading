@@ -134,7 +134,7 @@ def pegtop_blending(rgba, norm_intensities):
         See:
             http://www.imagemagick.org/Usage/compose/#pegtoplight
     
-        Forked from Ran Novitsky's blog
+        Forked from Ran Novitsky's blog (no license found)
             http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html    
         
         :param rgba: [nrows, ncols, 3|4] RGB or RGBA array. The alpha layer will be ignored.
@@ -169,10 +169,46 @@ def enforce_list(var):
     
     
 def hill_shade(data, terrain=None, 
+               azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
                ambient_weight=0.15, lamp_weight=1, 
-               cmap=DEF_CMAP, vmin=None, vmax=None, norm=None, blend_function=rgb_blending,  
-               azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
-    """ Calculates hill shading.
+               cmap=DEF_CMAP, vmin=None, vmax=None, norm=None, 
+               blend_function=rgb_blending):
+    """ Calculates a shaded relief given a 2D array of surface heights. 
+    
+        You can specify data properties and terrain height in separate parameters. The data array
+        determines the (unshaded) color, the terrain is used to calculate the shading component.
+        If the terrain is left to None, the data array will be used as terrain as well. The terrain
+        parameter can also be used to scale the surface heights. E.g. use: terrain = data * 10
+        
+        The relief is calculated from one or more artificial light sources which positions are
+        specified by their azimuth and elevation angle. Each lamp can have a weight, which 
+        corresponds to its strength. Ambient light is light that reaches the surface via indirect 
+        illumination. If the ambient weight set to 0, pixels that are not illuminated by any lamp 
+        are rendered completely black, which is usually undesirable.   
+        
+        The algorithm uses a color map to color the relief. The minimum and maximum values of the
+        color scale can be specified by vmin and vmax (or by giving a normalization function). If
+        these are all None (the default), the color bar will be auto-scaled.
+        
+        The blend_function is the function that merges the color and shade components into the
+        final result. It was found that rbg_blending, the default, gives the best results. If set
+        to no_blending, only the intensities of the shade component are returned. This is useful
+        for debugging.
+    
+        :param data: 2D array with terrain properties
+        :param terrain: 2D array with terrain heights
+        :param azimuth: azimuth angle [degrees] of the lamp direction(s). Can be scalar or list.
+        :param elevation: elevation angle [degrees] of the lamp direction(s). Can be scalar or list.
+        :param ambient_weight: the relative strength of the abmient illumination
+        :param lamp_weight: the relative strength of the lamp or lamps 
+        :param cmap: matplotlib color map to color the data (default: 'gist_earth')
+        :param vmin: use to set a minimum value of the color scale 
+        :param vmax: use to set a maximum value of the color scale
+        :param norm: colorbar normalization function. E.g.: mpl.colors.Normalize(vmin=0.0, vmax=1.0)
+        :param blend_function: function that blends shading and color (default = rbg_blending)
+        
+        :returns: 3D array (n_rows, n_cols, 3) with for each pixel an RGB color. 
+            If blend_function=no_blending the result is a 2D array with only shading intensities.
     """
     if terrain is None:
         terrain = data
