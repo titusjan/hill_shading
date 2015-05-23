@@ -14,25 +14,24 @@ from hillshade import hill_shade
 
 def main():
     fig, axes = plt.subplots(1, 1) 
-    fig.tight_layout()
-
+    
     data = make_test_data('hills') / 2 + 2 # 200 by 200 km. Height between -2.25 and 5.7 km
     print("data range: {} {}".format(np.min(data), np.max(data)))
     
-    cmap_name = 'gist_earth'
-    cmap=plt.cm.get_cmap(cmap_name)
+    cmap=plt.cm.get_cmap('gist_earth')
     vmin, vmax = -5, 5  # scale clip color map between -5, 5
     
     rgb = hill_shade(data, terrain=data * 5, # scale terrain height to make relief visible 
-                     #azimuth=135, elevation=45,       # uncomment to use different values
-                     #ambient_weight=2, lamp_weight=5, # uncomment to use different values
+                     #azimuth=90, elevation=60,        # un-comment to use non-default values
+                     #ambient_weight=0, lamp_weight=5, # un-comment to use non-default values
                      cmap=cmap, vmin=vmin, vmax=vmax)
         
     axes.imshow(rgb, norm=None, origin='lower')
     add_colorbar(axes, label='Terrain height [km]', cmap=cmap, vmin=vmin, vmax=vmax)
     axes.set_xlabel('[km]')
     axes.set_ylabel('[km]')
-                                 
+
+    fig.tight_layout()
     plt.show()
 
 if __name__ == "__main__":
