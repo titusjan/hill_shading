@@ -33,9 +33,6 @@ from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
 from intensity import weighted_intensity
 from intensity import DEF_AZIMUTH, DEF_ELEVATION, DEF_AMBIENT_WEIGHT, DEF_LAMP_WEIGHT
 
-# For a list of colormaps see:
-#    http://matplotlib.org/examples/color/colormaps_reference.html
-
 # For choosing a good color map see:
 #    http://matplotlib.org/users/colormaps.html 
 
@@ -173,7 +170,7 @@ def hill_shade(data, terrain=None,
         these are all None (the default), the color bar will be auto-scaled.
         
         The blend_function is the function that merges the color and shade components into the
-        final result. It was found that rbg_blending, the default, gives the best results. If set
+        final result. It was found that rbg_blending (the default) gives the best results. If set
         to no_blending, only the intensities of the shade component are returned. This is useful
         for debugging.
     
@@ -181,8 +178,8 @@ def hill_shade(data, terrain=None,
         :param terrain: 2D array with terrain heights
         :param azimuth: azimuth angle [degrees] of the lamp direction(s). Can be scalar or list.
         :param elevation: elevation angle [degrees] of the lamp direction(s). Can be scalar or list.
-        :param ambient_weight: the relative strength of the ambient illumination (default = 10)
-        :param lamp_weight: the relative strength of the lamp or lamps (default = 50)
+        :param ambient_weight: the relative strength of the ambient illumination (default = 1)
+        :param lamp_weight: the relative strength of the lamp or lamps (default = 5)
         :param cmap: matplotlib color map to color the data (default: 'gist_earth')
         :param vmin: use to set a minimum value of the color scale 
         :param vmax: use to set a maximum value of the color scale

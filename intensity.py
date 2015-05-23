@@ -33,6 +33,8 @@ DEF_ELEVATION = 45  # degrees
 DEF_AMBIENT_WEIGHT = 1
 DEF_LAMP_WEIGHT = 5
 
+DO_SANITY_CHECKS = True # If True intermediate results will be checked for boundary values.
+
     
 def weighted_intensity(terrain,  
                        azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
@@ -77,7 +79,7 @@ def weighted_intensity(terrain,
 def relative_surface_intensity(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
     """ Calculates the intensity that falls on the surface for light of intensity 1. 
         This equals cosine(theta) where theta is the angle between the direction of the light 
-        source and the surface normal. When this number is negative, the this angle is > 90 degrees. 
+        source and the surface normal. When the cosine is negative, the angle is > 90 degrees. 
         In that case the surface receives no light so we clip to 0. The result of this function is 
         therefore always between 0 and 1.
     """
@@ -85,13 +87,13 @@ def relative_surface_intensity(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVA
     # direction of the light source. Both vectors must be unit vectors (have length 1).
     normals = surface_unit_normals(terrain)
     light = polar_to_cart3d(azimuth, elevation)
-    
-    np.testing.assert_approx_equal(np.linalg.norm(light), 1.0, 
-                                   err_msg="sanity check: light vector should have length 1")
-    
     intensity = np.dot(normals, light)
-    assert np.all(intensity >= -1.0), "sanity check: cos(theta) should be >= -1"
-    assert np.all(intensity <= 1.0), "sanity check: cos(theta) should be <= 1"
+    
+    if DO_SANITY_CHECKS:
+        np.testing.assert_approx_equal(np.linalg.norm(light), 1.0, 
+                                       err_msg="sanity check: light vector should have length 1")
+        assert np.all(intensity >= -1.0), "sanity check: cos(theta) should be >= -1"
+        assert np.all(intensity <= 1.0), "sanity check: cos(theta) should be <= 1"
     
     # Where the dot product is smaller than 0 the angle between the light source and the surface
     # is larger than 90 degrees. These pixels receive no light so we clip the intensity to 0.
@@ -191,8 +193,9 @@ def mpl_surface_intensity(terrain,
         aspect = arctan2(dx, dy)
     intensity = sin(alt) * sin(slope) + cos(alt) * cos(slope) * cos(-az - aspect - 0.5 * pi)
 
-    assert np.all(intensity >= -1.0), "sanity check: cos(theta) should be >= -1"
-    assert np.all(intensity <= 1.0), "sanity check: cos(theta) should be <= 1"
+    if DO_SANITY_CHECKS:
+        assert np.all(intensity >= -1.0), "sanity check: cos(theta) should be >= -1"
+        assert np.all(intensity <= 1.0), "sanity check: cos(theta) should be <= 1"
 
     # The matplotlib source just normalizes the intensities. However, I believe that their 
     # intensities are the same as mine so that, where they are < 0 the angle between the light 

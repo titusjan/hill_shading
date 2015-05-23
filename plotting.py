@@ -55,7 +55,7 @@ def make_test_data(shape, noise_factor=0.0, size=200):
 # drawing #
 ###########
 
-def add_colorbar(axes, cmap, norm=None):
+def add_colorbar(axes, cmap, norm=None, label=None):
     """ Aux function that makes a color bar from the image and adds it to the figure
     """
     assert cmap, "cmap undefined"
@@ -67,7 +67,7 @@ def add_colorbar(axes, cmap, norm=None):
     colorbar_axes = divider.append_axes('right', size="5%", pad=0.25, add_to_figure=True)
     
     # mpl.colorbar.ColorbarBase can have side effects on norm if norm is auto scaling!
-    colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, 
+    colorbar = mpl.colorbar.ColorbarBase(colorbar_axes, cmap=cmap, norm=norm, label=label, 
                                          orientation='vertical', extend='both')
     return colorbar
 
