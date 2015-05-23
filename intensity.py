@@ -30,6 +30,49 @@ import numpy as np
 DEF_AZIMUTH = 135   # degrees
 DEF_ELEVATION = 45  # degrees
 
+DEF_AMBIENT_WEIGHT = 1
+DEF_LAMP_WEIGHT = 5
+
+    
+def weighted_intensity(terrain,  
+                       azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
+                       ambient_weight=DEF_AMBIENT_WEIGHT, lamp_weight=DEF_LAMP_WEIGHT):
+    """ Calculates weighted average of the ambient illumination and the that of one or more lamps.
+    
+        The azimuth and elevation parameters can be scalars or lists. Use the latter for multiple 
+        lamps. They should be of equal length.
+         
+        The lamp_weight can be given per lamp or one value can be specified, which is then used for
+        all lamps sources.
+        
+        See also the hill_shade doc string.
+    """
+    # Make sure input is in the correct shape
+    azimuths = enforce_list(azimuth)
+    elevations = enforce_list(elevation)
+    assert_same_length(azimuths, elevations, 'azimuths', 'elevations')
+    
+    lamp_weights = enforce_list(lamp_weight)
+    if len(lamp_weights) == 1:
+        lamp_weights = lamp_weights * len(azimuths) 
+    assert_same_length(azimuths, lamp_weights, 'azimuths', 'lamp_weights')
+
+    # Create weights and rel_intensities arrays   
+    rel_intensities = [np.ones_like(terrain)]
+    weights = [ambient_weight] 
+    for azim, elev, lmpw in zip(azimuths, elevations, lamp_weights):
+        rel_int = relative_surface_intensity(terrain, azimuth=azim, elevation=elev)
+        rel_intensities.append(rel_int)
+        weights.append(lmpw)
+    
+    rel_intensities = np.dstack(rel_intensities)
+    weights = np.array(weights)
+    
+    # The actual weighted-average calculation
+    unit_weights = weights / np.sum(weights)
+    surface_intensity = np.average(rel_intensities, axis=2, weights=unit_weights)
+    return surface_intensity
+
 
 def relative_surface_intensity(terrain, azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION):
     """ Calculates the intensity that falls on the surface for light of intensity 1. 
@@ -90,6 +133,25 @@ def polar_to_cart3d(azimuth, elevation):
     return np.array([height, row, col])
 
     
+def assert_same_length(s0, s1, label0, label1):
+    """ Asserts list s1 and s2 have the same lengths
+    """
+    if len(s0) != len(s1):
+        raise AssertionError("size mismatch between {} (len={}) and {} (len={})"
+                             .format(label0, s0, label1, s1))
+           
+def enforce_list(var):
+    """ Runs the list() constructor on the var parameter.
+    """
+    try:
+        return list(var) # iterable
+    except TypeError:
+        return [var]
+
+
+# The mpl_surface_intensity is included to compare the matplotlib implementation with 
+# the relative_surface_intensity() results.
+#
 def mpl_surface_intensity(terrain, 
                           azimuth=165, elevation=DEF_ELEVATION, 
                           azim0_is_east=False, normalize=False):

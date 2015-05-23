@@ -50,7 +50,7 @@ def main():
         draw(ax[row, col], cmap=cmap, norm=norm, 
              title='azim = {}, elev = {}'.format(azim, elev), 
              image_data = hill_shade(data, terrain, blend_function=blend_function, 
-                                     ambient_weight = 0.15, lamp_weight = 1,
+                                     ambient_weight = 1, lamp_weight = 5,
                                      cmap=cmap, norm=norm,  
                                      azimuth=azim, elevation=elev))
     
@@ -58,7 +58,7 @@ def main():
     draw(ax[1, 1], cmap=cmap, norm=norm, 
          title='combined'.format(azim, elev), 
          image_data = hill_shade(data, terrain, blend_function=blend_function, 
-                                 ambient_weight = 0.15, lamp_weight = [1, 1, 1],
+                                 ambient_weight = 1, lamp_weight = [5, 5, 5],
                                  cmap=cmap, norm=norm,  
                                  azimuth=azimuths, elevation=elevations))
 

@@ -28,12 +28,10 @@ from __future__ import division
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from intensity import  relative_surface_intensity
+
 from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
-
-DEF_AZIMUTH = 135   # degrees
-DEF_ELEVATION = 45  # degrees
-
+from intensity import weighted_intensity
+from intensity import DEF_AZIMUTH, DEF_ELEVATION, DEF_AMBIENT_WEIGHT, DEF_LAMP_WEIGHT
 
 # For a list of colormaps see:
 #    http://matplotlib.org/examples/color/colormaps_reference.html
@@ -152,25 +150,9 @@ def pegtop_blending(rgba, norm_intensities):
     return 2 * d * rgb + (rgb ** 2) * (1 - 2 * d)
     
     
-def assert_same_length(s0, s1, label0, label1):
-    """ Asserts list s1 and s2 have the same lengths
-    """
-    if len(s0) != len(s1):
-        raise AssertionError("size mismatch between {} (len={}) and {} (len={})"
-                             .format(label0, s0, label1, s1))
-           
-def enforce_list(var):
-    """ Runs the list() constructor on the var parameter.
-    """
-    try:
-        return list(var) # iterable
-    except TypeError:
-        return [var]
-    
-    
 def hill_shade(data, terrain=None, 
                azimuth=DEF_AZIMUTH, elevation=DEF_ELEVATION, 
-               ambient_weight=0.15, lamp_weight=1, 
+               ambient_weight=DEF_AMBIENT_WEIGHT, lamp_weight=DEF_LAMP_WEIGHT, 
                cmap=DEF_CMAP, vmin=None, vmax=None, norm=None, 
                blend_function=rgb_blending):
     """ Calculates a shaded relief given a 2D array of surface heights. 
@@ -199,8 +181,8 @@ def hill_shade(data, terrain=None,
         :param terrain: 2D array with terrain heights
         :param azimuth: azimuth angle [degrees] of the lamp direction(s). Can be scalar or list.
         :param elevation: elevation angle [degrees] of the lamp direction(s). Can be scalar or list.
-        :param ambient_weight: the relative strength of the abmient illumination
-        :param lamp_weight: the relative strength of the lamp or lamps 
+        :param ambient_weight: the relative strength of the ambient illumination (default = 10)
+        :param lamp_weight: the relative strength of the lamp or lamps (default = 50)
         :param cmap: matplotlib color map to color the data (default: 'gist_earth')
         :param vmin: use to set a minimum value of the color scale 
         :param vmax: use to set a maximum value of the color scale
@@ -216,25 +198,8 @@ def hill_shade(data, terrain=None,
     assert data.ndim == 2, "data must be 2 dimensional"
     assert terrain.shape == data.shape, "{} != {}".format(terrain.shape, data.shape)
     
-    # Calculates relative surface intensity for all lamps
-    azimuths = enforce_list(azimuth)
-    elevations = enforce_list(elevation)
-    lamp_weights = enforce_list(lamp_weight)
-    assert_same_length(azimuths, elevations, 'azimuths', 'elevations')
-    assert_same_length(azimuths, lamp_weights, 'azimuths', 'lamp_weights')
-   
-    rel_intensities = [np.ones_like(terrain)]
-    weights = [ambient_weight] 
-    for azim, elev, lmpw in zip(azimuths, elevations, lamp_weights):
-        rel_int = relative_surface_intensity(terrain, azimuth=azim, elevation=elev)
-        rel_intensities.append(rel_int)
-        weights.append(lmpw)
-    
-    rel_intensities = np.dstack(rel_intensities)
-    weights = np.array(weights)
-    
-    unit_weights = weights / np.sum(weights)
-    surface_intensity = np.average(rel_intensities, axis=2, weights=unit_weights)
+    surface_intensity = weighted_intensity(terrain, azimuth=azimuth, elevation=elevation, 
+                                           ambient_weight=ambient_weight, lamp_weight=lamp_weight)
         
     rgba = color_data(data, cmap=cmap, vmin=vmin, vmax=vmax, norm=norm)
     return blend_function(rgba, surface_intensity)
