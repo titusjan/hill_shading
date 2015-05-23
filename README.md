@@ -64,6 +64,8 @@ also allows for different data and terrain arrays, which is nice). However,
 I think the _RGB blending_ of this implementation gives better results than the 
 _pegtop blending_ that Ran Novitsky uses, since it is similar to the gouraud 
 shading that is used in 3D computer graphics. This may be subjective of course, 
-you can determine your preference in the 
-[blending comparison](compare_blending.py).
+you can determine your preference the 
+[blending comparison](compare_blending.py). 
+
+![output of different blending methods](screenshots/compare_blending.png)
 
