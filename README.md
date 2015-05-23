@@ -6,7 +6,7 @@ more artificial light sources.
 
 ![screen shot](screenshots/basic_use.png)
 
-#### Installation:
+#### Installation
 
 There is no installation script, just copy the `hillshade.py` and 
 `intensity.py` files into your code. This software is released under the MIT 
@@ -14,7 +14,7 @@ license, please leave the license in the headers intact.
 
 Requirements: matplotlib and numpy.
 
-#### Basic use:
+#### Basic use
 
 The main interface is the `hill_shade` function. Calling it can be as simple as:
 
@@ -41,11 +41,11 @@ seprate data and terrain array.
 
 The optional azimuth and elevation parameters can be used to specify the 
 direction of the light source. They can be lists, in which case multiple sources
-are used. See the [multipe light source demo](demo_multi_source.py)
+are used. See the [multipe light source demo](demo_multi_source.py).
 
-The hill\_shade _docstring_ explaines the parameters in detail.
+The `hill_shade` docstring explaines the parameters in detail.
 
-#### Rationale:
+#### Rationale
 
 Altough Matplotlib comes with a [hill shading implementation](http://matplotlib.org/examples/pylab_examples/shading_example.html) 
 I don't like the fact that it always normalizes the calculated intensites. This
@@ -60,10 +60,10 @@ well with color maps such as _rainbow_ or _bwr_.
 The [implementation by Ran Novitsky]
 (http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html)
 differs from the Matplotlib implementation in how the colors are blended (it 
-also allows for different data and terrain arrays). However, I think the 
-_RGB blending_ of this implementation gives better results than the _pegtop 
-blending_ that Ran Novitsky uses, since it is similar to gouraud shading  
-which is used in 3D computer graphics. This may be subjective of course, 
-so you can determine your preference in the 
+also allows for different data and terrain arrays, which is nice). However, 
+I think the _RGB blending_ of this implementation gives better results than the 
+_pegtop blending_ that Ran Novitsky uses, since it is similar to the gouraud 
+shading that is used in 3D computer graphics. This may be subjective of course, 
+you can determine your preference in the 
 [blending comparison](compare_blending.py).
 
