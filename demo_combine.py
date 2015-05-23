@@ -26,10 +26,17 @@ def main():
     print("min data: {}".format(np.min(data)))
     print("max data: {}".format(np.max(data)))
 
-    cmap = plt.cm.get_cmap('bwr')
-    cmap.set_bad('yellow')
-    cmap.set_over('cyan')
-    cmap.set_under('magenta')
+    # Some color maps to try.
+    #cmap = plt.cm.get_cmap('bwr')
+    #cmap = plt.cm.get_cmap('CMRmap')
+    #cmap = plt.cm.get_cmap('rainbow')
+    #cmap = plt.cm.get_cmap('cool_r')
+    cmap = plt.cm.get_cmap('Set1')
+    
+    # Optionally set the over and under flow colors.
+    #cmap.set_bad('yellow')
+    #cmap.set_over('cyan')
+    #cmap.set_under('magenta')
          
     if ['--autoscale'] in sys.argv:
         print ("Auto scale legend")

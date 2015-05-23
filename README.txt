@@ -8,7 +8,7 @@ This software is released under the MIT license. There is no installation proced
 hillshade.py and intensity.py files into your code. 
 
 Matplotlib hill shading:
-    http://matplotlib.org/examples/pylab_examples/shading_example.html?highlight=codex%20shade
+    http://matplotlib.org/examples/pylab_examples/shading_example.html
 
 Pegtop shading:
     http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html

@@ -15,7 +15,8 @@ from hillshade import hill_shade
 def main():
     fig, axes = plt.subplots(1, 1) 
     
-    data = make_test_data('hills') / 2 + 2 # 200 by 200 km. Height between -2.25 and 5.7 km
+    # Generate terrain of 200 by 200 km, height between -2.25 and 5.7 km
+    data = make_test_data('hills', noise_factor=0.05) / 2 + 2 
     print("data range: {} {}".format(np.min(data), np.max(data)))
     
     cmap=plt.cm.get_cmap('gist_earth')

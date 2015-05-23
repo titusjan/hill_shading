@@ -55,7 +55,7 @@ def make_test_data(shape, noise_factor=0.0, size=200):
 # drawing #
 ###########
 
-def add_colorbar(axes, cmap, norm=None, vmin=None, vmax=None, label=None):
+def add_colorbar(axes, cmap, norm=None, vmin=None, vmax=None, label=''):
     """ Aux function that makes a color bar from the image and adds it to the figure
     """
     if norm is None:
