@@ -16,22 +16,20 @@ def main():
     fig, axes = plt.subplots(1, 1) 
     fig.tight_layout()
 
-    data = make_test_data('hills')  # 200x200 km. Height between -8.5 and 7.5 km
+    data = make_test_data('hills') / 2 + 2 # 200 by 200 km. Height between -2.25 and 5.7 km
     print("data range: {} {}".format(np.min(data), np.max(data)))
     
     cmap_name = 'gist_earth'
     cmap=plt.cm.get_cmap(cmap_name)
-    
-    norm = mpl.colors.Normalize()
+    vmin, vmax = -5, 5  # scale clip color map between -5, 5
     
     rgb = hill_shade(data, terrain=data * 5, # scale terrain height to make relief visible 
                      #azimuth=135, elevation=45,       # uncomment to use different values
                      #ambient_weight=2, lamp_weight=5, # uncomment to use different values
-                     cmap=cmap, norm=norm)
+                     cmap=cmap, vmin=vmin, vmax=vmax)
         
     axes.imshow(rgb, norm=None, origin='lower')
-    
-    add_colorbar(axes, cmap, norm=norm, label='Terrain height [km]')
+    add_colorbar(axes, label='Terrain height [km]', cmap=cmap, vmin=vmin, vmax=vmax)
     axes.set_xlabel('[km]')
     axes.set_ylabel('[km]')
                                  

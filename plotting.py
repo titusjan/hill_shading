@@ -55,9 +55,12 @@ def make_test_data(shape, noise_factor=0.0, size=200):
 # drawing #
 ###########
 
-def add_colorbar(axes, cmap, norm=None, label=None):
+def add_colorbar(axes, cmap, norm=None, vmin=None, vmax=None, label=None):
     """ Aux function that makes a color bar from the image and adds it to the figure
     """
+    if norm is None:
+        norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+            
     assert cmap, "cmap undefined"
     assert norm.scaled(), "Norm function must be scaled to prevent side effects"
     #print("cnorm.vmin: {}".format(norm.vmin))
