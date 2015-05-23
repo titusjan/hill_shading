@@ -19,7 +19,11 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     
-""" Hill shading implementation for matplotlib
+""" Hill shading implementation for matplotlib version 1.0.0
+    
+    See https://github.com/titusjan/hill_shading for updates.
+
+    2015-05-23, Pepijn Kenter.
 """
   
 from __future__ import print_function

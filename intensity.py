@@ -20,6 +20,8 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    
 """ Functions that calculate intensity (irradiance) of light falling on a surface (terrain)
+
+    See https://github.com/titusjan/hill_shading for updates.
 """
 
 from __future__ import print_function
