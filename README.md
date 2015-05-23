@@ -12,7 +12,7 @@ There is no installation script, just copy the `hillshade.py` and
 `intensity.py` files into your code. This software is released under the MIT 
 license, please leave the license in the headers intact.
 
-Requirements: matplotlib and numpy.
+Requirements: _Matplotlib_ and _Numpy_.
 
 #### Basic use
 
@@ -37,23 +37,23 @@ rgb = hill_shade(data, terrain=data * 10)
 
 In the [basic use demo](demo_multi_source.py) you can see how to use a different
 color map. The [combine data demo](demo_combine.py) demonstrates the use of a
-seprate data and terrain array.
+separate data and terrain array.
 
 The optional azimuth and elevation parameters can be used to specify the 
 direction of the light source. They can be lists, in which case multiple sources
 are used. See the [multipe light source demo](demo_multi_source.py).
 
-The `hill_shade` docstring explaines the parameters in detail.
+The `hill_shade` doc-string explains the parameters in detail.
 
 #### Rationale
 
-Altough Matplotlib comes with a [hill shading implementation](http://matplotlib.org/examples/pylab_examples/shading_example.html) 
-I don't like the fact that it always normalizes the calculated intensites. This
+Alltough Matplotlib comes with a [hill shading implementation](http://matplotlib.org/examples/pylab_examples/shading_example.html) 
+I don't like the fact that it always normalizes the calculated intensities. This
 means that it always shows heavy shades, even if the maximum relief is low. This 
 implementation does not, you can increase the shades by scaling the terrain.
-See the [intenstity comparison](compare_intensity.py). 
+See the [intensity comparison](compare_intensity.py). 
 
-Futhermore the matplotlib hill shading relies heavily on the fact that the 
+Furthermore the Matplotlib hill shading relies heavily on the fact that the 
 used colormap contains variation in intensity as well. That is, it doesn't work
 well with color maps such as _rainbow_ or _bwr_. 
 
@@ -61,9 +61,9 @@ The [implementation by Ran Novitsky]
 (http://rnovitsky.blogspot.nl/2010/04/using-hillshade-image-as-intensity.html)
 differs from the Matplotlib implementation in how the colors are blended (it 
 also allows for different data and terrain arrays, which is nice). However, 
-I think the _RGB blending_ of this implementation gives better results than the 
-_pegtop blending_ that Ran Novitsky uses, since it is similar to the gouraud 
+I think the _RGB blending_ that this implementation uses gives better results 
+than the _pegtop blending_ of Ran Novitsky's, since it's similar to the Gouraud 
 shading that is used in 3D computer graphics. This may be subjective of course, 
-you can determine your preference in the 
-[blending comparison](compare_blending.py).
+you can experiment in the [blending comparison](compare_blending.py). The
+screen shot below illustrates my point.
 
