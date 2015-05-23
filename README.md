@@ -37,7 +37,9 @@ rgb = hill_shade(data, terrain=data * 10)
 
 In the [basic use demo](demo_multi_source.py) you can see how to use a different
 color map. The [combine data demo](demo_combine.py) demonstrates the use of a
-separate data and terrain array.
+separate data and terrain array (see image below).
+
+![combined intenstity and surface properties](screenshots/combine.png)
 
 The optional `azimuth` and `elevation` parameters can be used to specify the 
 direction of the light source. They can be lists, in which case multiple sources
