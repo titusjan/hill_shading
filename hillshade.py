@@ -43,12 +43,9 @@ DEF_ELEVATION = 45  # degrees
 
 INTENSITY_CMAP = plt.cm.get_cmap('gray')
 INTENSITY_CMAP.set_bad('red')
-INTENSITY_CMAP.set_over('blue')
-INTENSITY_CMAP.set_under('yellow')
+INTENSITY_CMAP.set_over('blue')    # to check that no intensity is above 1
+INTENSITY_CMAP.set_under('yellow') # to check that no intensity is below 0
 
-#DEF_CMAP = plt.cm.get_cmap('cool')
-#DEF_CMAP = plt.cm.get_cmap('cubehelix')  # doesn't work well with HSV blending
-#DEF_CMAP = plt.cm.get_cmap('hot')        # doesn't work well with HSV blending
 DEF_CMAP = plt.cm.get_cmap('gist_earth')
     
     
