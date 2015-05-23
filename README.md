@@ -39,7 +39,7 @@ In the [basic use demo](demo_multi_source.py) you can see how to use a different
 color map. The [combine data demo](demo_combine.py) demonstrates the use of a
 separate data and terrain array.
 
-The optional azimuth and elevation parameters can be used to specify the 
+The optional `azimuth` and `elevation` parameters can be used to specify the 
 direction of the light source. They can be lists, in which case multiple sources
 are used. See the [multipe light source demo](demo_multi_source.py).
 
@@ -63,8 +63,8 @@ differs from the Matplotlib implementation in how the colors are blended (it
 also allows for different data and terrain arrays, which is nice). However, 
 I think the _RGB blending_ that this implementation uses gives better results 
 than the _pegtop blending_ of Ran Novitsky's, since it's similar to the Gouraud 
-shading that is used in 3D computer graphics. This may be subjective of course, 
+shading that is used in 3D computer graphics. Of course, this may be subjective, 
 you can experiment yourself in the [blending comparison](compare_blending.py). 
-However, the images below illustrate my point i think.
+However, I think that the images below illustrate my point.
 
 ![output of different blending methods](screenshots/compare_blending.png)
